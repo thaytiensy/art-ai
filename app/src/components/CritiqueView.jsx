@@ -264,51 +264,93 @@ export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, tea
                 </div>
               </div>
 
-              {/* Feedback Content Boxes */}
-              <div className="space-y-4">
-                {/* 1. Praise */}
-                <div className="bg-rose-50 border-2 border-rose-200 p-4 rounded-2xl flex items-start gap-3">
-                  <div className="p-2 bg-rose-500 text-white rounded-xl text-lg shadow-sm">
-                    💖
-                  </div>
-                  <div>
-                    <h5 className="font-extrabold text-rose-700 text-sm mb-1">
-                      Lời Khen Ngọt Ngào Của {pronoun}:
-                    </h5>
-                    <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                      {feedback.praise}
-                    </p>
+              {/* Visual Stats Badge */}
+              {feedback.visualStats && (
+                <div className="flex items-center gap-2 flex-wrap text-[11px] font-extrabold text-gray-600 bg-amber-50/60 p-2.5 rounded-2xl border border-amber-200">
+                  <span className="px-2 py-0.5 rounded-lg bg-white border border-amber-300 text-amber-900">
+                    👁️ {feedback.visualStats.colorDescription}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-lg bg-white border border-amber-300 text-amber-900">
+                    📊 Độ phủ nét vẽ: {feedback.visualStats.coveragePercent}%
+                  </span>
+                </div>
+              )}
+
+              {/* Headline */}
+              {feedback.headline && (
+                <div className="bg-gradient-to-r from-pink-50 to-rose-50 border-2 border-pink-200 p-4 rounded-2xl flex items-center gap-3">
+                  <span className="text-2xl">🎉</span>
+                  <p className="font-black text-rose-800 text-sm leading-snug">
+                    {feedback.headline}
+                  </p>
+                </div>
+              )}
+
+              {/* 4 Rubric Criteria Grid (Chuẩn GDPT 2018) */}
+              {feedback.rubrics && feedback.rubrics.length > 0 ? (
+                <div>
+                  <h5 className="font-black text-gray-800 text-xs sm:text-sm uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                    <span>📋 Bảng Tiêu Chí Rubric Đánh Giá (Bộ GD&ĐT):</span>
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {feedback.rubrics.map((r, i) => (
+                      <div key={i} className="bg-gray-50/80 border-2 border-gray-200 p-3.5 rounded-2xl flex flex-col justify-between hover:border-pink-300 transition">
+                        <div>
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="font-black text-xs text-pink-700">
+                              {r.criterion}
+                            </span>
+                            <span className="text-amber-500 text-xs">
+                              {'★'.repeat(r.stars || 5)}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-gray-700 leading-relaxed">
+                            {r.feedback}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* 2. Tip */}
-                <div className="bg-amber-50 border-2 border-amber-200 p-4 rounded-2xl flex items-start gap-3">
-                  <div className="p-2 bg-amber-500 text-white rounded-xl text-lg shadow-sm">
-                    💡
-                  </div>
-                  <div>
-                    <h5 className="font-extrabold text-amber-800 text-sm mb-1">
-                      Mẹo Nhỏ Họa Sĩ Nhí:
-                    </h5>
-                    <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                      {feedback.tip}
-                    </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-rose-50 border-2 border-rose-200 p-4 rounded-2xl flex items-start gap-3">
+                    <div className="p-2 bg-rose-500 text-white rounded-xl text-lg shadow-sm">💖</div>
+                    <div>
+                      <h5 className="font-extrabold text-rose-700 text-sm mb-1">Lời Khen Ngọt Ngào:</h5>
+                      <p className="text-sm font-bold text-gray-700 leading-relaxed">{feedback.praise}</p>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                {/* 3. Conclusion */}
-                <div className="bg-sky-50 border-2 border-sky-200 p-4 rounded-2xl flex items-start gap-3">
-                  <div className="p-2 bg-sky-500 text-white rounded-xl text-lg shadow-sm">
-                    🌸
+              {/* 3 Actionable Improvement Steps */}
+              {feedback.improvements && feedback.improvements.length > 0 && (
+                <div className="bg-amber-50/90 border-2 border-amber-300 p-4 rounded-2xl flex flex-col gap-2">
+                  <h5 className="font-black text-amber-900 text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>💡 3 Bước Cải Thiện Trực Quan Của {pronoun}:</span>
+                  </h5>
+                  <div className="space-y-1.5 text-xs font-bold text-amber-950">
+                    {feedback.improvements.map((step, idx) => (
+                      <div key={idx} className="flex items-start gap-2 bg-white/70 p-2 rounded-xl">
+                        <span className="font-black text-amber-600 shrink-0">✓</span>
+                        <p className="leading-relaxed">{step}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <h5 className="font-extrabold text-sky-800 text-sm mb-1">
-                      Lời Nhắn Nhủ Yêu Thương:
-                    </h5>
-                    <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                      {feedback.conclusion}
-                    </p>
-                  </div>
+                </div>
+              )}
+
+              {/* Teacher Message */}
+              <div className="bg-sky-50 border-2 border-sky-200 p-4 rounded-2xl flex items-start gap-3">
+                <div className="p-2 bg-sky-500 text-white rounded-xl text-lg shadow-sm">🌸</div>
+                <div>
+                  <h5 className="font-extrabold text-sky-800 text-sm mb-1">
+                    Lời Nhắn Nhủ Yêu Thương Của {teacherName}:
+                  </h5>
+                  <p className="text-xs sm:text-sm font-bold text-gray-700 leading-relaxed">
+                    {feedback.teacherMessage || feedback.conclusion}
+                  </p>
                 </div>
               </div>
 

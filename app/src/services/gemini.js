@@ -1,10 +1,108 @@
-// Unified AI Vision Service for Thầy Giáo Mĩ Thuật (Thầy Cọ Nhí)
+// Unified AI Vision & Art Pedagogical Service for Thầy Giáo Mĩ Thuật (Thầy Cọ Nhí)
+// Standards: GDPT 2018 (Thông tư 32/2018/TT-BGDĐT) - 4 Rubric Criteria
 
-export async function analyzeKidsArtwork(imageBase64, apiKey, promptContext = '', teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy', title: 'Thầy giáo', gender: 'male' }) {
+// 1. Phân tích quang học điểm ảnh trực tiếp từ Canvas/Ảnh phía Client
+export function analyzeCanvasPixels(imageBase64) {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !imageBase64) {
+      resolve({
+        density: 'medium',
+        dominantColor: 'warm',
+        colorDescription: 'Hòa sắc tươi tắn, giàu năng lượng',
+        coveragePercent: 35
+      });
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const size = 64;
+        canvas.width = size;
+        canvas.height = size;
+        ctx.drawImage(img, 0, 0, size, size);
+
+        const imgData = ctx.getImageData(0, 0, size, size).data;
+        let nonWhitePixels = 0;
+        let rTotal = 0, gTotal = 0, bTotal = 0;
+
+        for (let i = 0; i < imgData.length; i += 4) {
+          const r = imgData[i];
+          const g = imgData[i + 1];
+          const b = imgData[i + 2];
+          const a = imgData[i + 3];
+
+          // Check if pixel is not plain white or transparent
+          if (a > 30 && (r < 240 || g < 240 || b < 240)) {
+            nonWhitePixels++;
+            rTotal += r;
+            gTotal += g;
+            bTotal += b;
+          }
+        }
+
+        const totalPixels = size * size;
+        const coverage = Math.round((nonWhitePixels / totalPixels) * 100);
+
+        let density = 'light';
+        if (coverage > 45) density = 'rich';
+        else if (coverage > 15) density = 'medium';
+
+        let dominantColor = 'warm';
+        let colorDesc = 'Hòa sắc ấm áp tươi vui (Đỏ, Vàng, Cam)';
+        if (nonWhitePixels > 0) {
+          const avgR = rTotal / nonWhitePixels;
+          const avgG = gTotal / nonWhitePixels;
+          const avgB = bTotal / nonWhitePixels;
+
+          if (avgB > avgR + 20 && avgB > avgG) {
+            dominantColor = 'cool';
+            colorDesc = 'Hòa sắc mát dịu, thanh bình (Xanh lam, Tím mộng mơ)';
+          } else if (avgG > avgR + 20 && avgG > avgB) {
+            dominantColor = 'nature';
+            colorDesc = 'Sắc màu thiên nhiên tươi mát (Xanh lá cây, Cỏ non)';
+          } else if (Math.abs(avgR - avgG) < 20 && Math.abs(avgG - avgB) < 20 && avgR < 100) {
+            dominantColor = 'sketch';
+            colorDesc = 'Bản phác nét đen trắng mộc mạc, rõ ràng';
+          }
+        }
+
+        resolve({
+          density,
+          dominantColor,
+          colorDescription: colorDesc,
+          coveragePercent: coverage
+        });
+      } catch (e) {
+        resolve({
+          density: 'medium',
+          dominantColor: 'warm',
+          colorDescription: 'Hòa sắc phong phú, tươi tắn',
+          coveragePercent: 30
+        });
+      }
+    };
+    img.onerror = () => {
+      resolve({
+        density: 'medium',
+        dominantColor: 'warm',
+        colorDescription: 'Hòa sắc tự nhiên sinh động',
+        coveragePercent: 30
+      });
+    };
+    img.src = imageBase64;
+  });
+}
+
+// 2. Trình chấm tranh thông minh đa phương thức kết hợp Rubric 4 Tiêu chí
+export async function analyzeKidsArtwork(imageBase64, apiKey, promptContext = '', teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy' }) {
   let cleanBase64 = imageBase64;
   let mimeType = 'image/png';
   let fullDataUrl = imageBase64;
-  
+
   if (imageBase64.includes(';base64,')) {
     const parts = imageBase64.split(';base64,');
     mimeType = parts[0].replace('data:', '');
@@ -17,221 +115,186 @@ export async function analyzeKidsArtwork(imageBase64, apiKey, promptContext = ''
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
 
-  const systemInstruction = `
-Bạn là "${teacherName}" - Thầy giáo Mĩ thuật Tiểu học (dành cho các bé lớp 1 đến lớp 5) vô cùng ấm áp, vui tươi, am hiểu nghệ thuật và tràn đầy năng lượng tích cực.
-Nhiệm vụ: Xem bức tranh vẽ của bé và đưa ra nhận xét theo chuẩn Mĩ thuật Tiểu học GDPT 2018 (Thông tư 32/2018/TT-BGDĐT):
-
-QUY TẮC BẮT BUỘC:
-1. LUÔN KHÍCH LỆ: Tuyệt đối không chê bai nét vẽ non nớt của trẻ. Mỗi bức tranh của bé đều là một tác phẩm độc nhất vô nhị!
-2. PHƯƠNG PHÁP BÁNH MÌ KẸP (SANDWICH FEEDBACK):
-   - Bước 1: Khen ngợi thật nồng nhiệt 2 điểm sáng tạo nhất (màu sắc tươi vui, nét bút tự tin, ý tưởng độc đáo).
-   - Bước 2: Gợi ý 1 mẹo nhỏ xíu dễ hiểu (ví dụ: tô thêm bóng râm, vẽ thêm ông mặt trời hoặc mây bồng bềnh).
-   - Bước 3: Trao tặng Huy hiệu Bé Sáng Tạo & Động viên con vẽ tiếp.
-3. NGÔN NGỮ: Xưng "${pronoun}" và gọi bé là "Họa sĩ nhí" hoặc "Con". Dùng từ ngữ đáng yêu, truyền cảm hứng, nhiều emoji.
-4. ĐÁNH GIÁ ĐIỂM: Luôn cho điểm 10/10 kèm danh hiệu vui nhộn (ví dụ: "Bậc Thầy Sắc Màu Nhí", "Cây Cọ Vàng Tương Lai").
-`;
+  // Chạy phân tích thị giác quang học trực tiếp từ ảnh của bé
+  const visualStats = await analyzeCanvasPixels(fullDataUrl);
 
   const trimmedKey = (apiKey || '').trim();
 
-  // 1. NẾU DÙNG HUGGING FACE TOKEN (Bắt đầu bằng hf_)
-  if (trimmedKey.startsWith('hf_')) {
-    try {
-      const hfEndpoint = 'https://router.huggingface.co/hf-inference/v1/chat/completions';
-      const requestBody = {
-        model: 'Qwen/Qwen2.5-VL-7B-Instruct',
-        messages: [
-          {
-            role: 'system',
-            content: systemInstruction
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Bé vừa gửi bức tranh này cho ${pronoun}. Bé có nhắn: "${promptContext || `Nhờ ${teacherName} nhận xét bài vẽ của con ạ!`}". Hãy nhận xét cho bé nhé!`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: fullDataUrl
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 800,
-        temperature: 0.7
-      };
-
-      const res = await fetch(hfEndpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${trimmedKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.choices?.[0]?.message?.content;
-        if (text) return parseFeedback(text, teacherName);
-      }
-    } catch (err) {
-      console.warn('Hugging Face API call failed:', err);
-    }
-    return fallbackCritique(promptContext, teacher);
-  }
-
-  // 2. NẾU DÙNG GOOGLE GEMINI KEY
-  if (trimmedKey.length > 10) {
+  // 1. Nếu có Google Gemini Key -> Sử dụng Gemini 2.5 Flash Multimodal Vision
+  if (trimmedKey.length > 10 && !trimmedKey.startsWith('hf_')) {
     try {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${trimmedKey}`;
-      
-      const requestBody = {
-        contents: [
-          {
-            parts: [
-              {
-                text: `${systemInstruction}\n\nBé vừa gửi bức tranh này cho ${pronoun}. Bé có nhắn: "${promptContext || `Nhờ ${teacherName} nhận xét bài vẽ của con ạ!`}". Hãy nhận xét cho bé nhé!`
-              },
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: cleanBase64
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1000
-        }
-      };
+
+      const prompt = `
+Bạn là "${teacherName}" - Thầy giáo Mĩ thuật Tiểu học (chuẩn GDPT 2018 - Thông tư 32/2018/TT-BGDĐT).
+Hãy xem kỹ bức tranh của học sinh gửi lên (Bé có nhắn: "${promptContext || 'Nhờ Thầy nhận xét bức tranh của con ạ'}").
+
+BẮT BUỘC TRẢ VỀ DẠNG JSON HỢP LỆ VỚI CÁC TRƯỜNG SAU (KHÔNG DÙNG MARKDOWN CODEBLOCK, CHỈ TRẢ VỀ JSON THUẦN):
+{
+  "score": 10,
+  "badge": "Tên danh hiệu vui tươi cho bé (vd: 🌟 Bậc Thầy Sắc Màu Nhí, 🎨 Cây Cọ Vàng Tương Lai)",
+  "headline": "Lời khen mở đầu nồng nhiệt, truyền cảm hứng của ${pronoun}",
+  "rubrics": [
+    {
+      "criterion": "1. Ý Tưởng & Tính Sáng Tạo",
+      "stars": 5,
+      "feedback": "Nhận xét cụ thể về chủ đề, trí tưởng tượng ngây thơ của bé trong tranh"
+    },
+    {
+      "criterion": "2. Bố Cục & Không Gian",
+      "stars": 5,
+      "feedback": "Nhận xét về vị trí hình vẽ chính, mảng to - nhỏ, gần - xa trên trang giấy"
+    },
+    {
+      "criterion": "3. Kỹ Thuật Nét & Hình Khối",
+      "stars": 5,
+      "feedback": "Nhận xét về đường nét (thẳng, cong, nét bút tự tin), sự vận dụng hình vuông, tròn, tam giác"
+    },
+    {
+      "criterion": "4. Màu Sắc & Cảm Xúc",
+      "stars": 5,
+      "feedback": "Nhận xét cách bé phối màu, độ tươi sáng và cảm xúc bức tranh mang lại"
+    }
+  ],
+  "improvements": [
+    "Bước 1 (Về nét): gợi ý cụ thể 1 mẹo cải thiện nét vẽ hoặc viền đậm hơn",
+    "Bước 2 (Về màu/bóng): gợi ý tô thêm bóng râm hoặc nhấn màu tương phản",
+    "Bước 3 (Về chi tiết phụ): gợi ý thêm mây trời, hoa cỏ hoặc ông mặt trời để tranh trọn vẹn"
+  ],
+  "teacherMessage": "Lời nhắn nhủ ấm áp, xưng ${pronoun} và gọi bé là con/họa sĩ nhí",
+  "audioScript": "Một đoạn văn ngắn gọn khoảng 3-4 câu truyền cảm để ${pronoun} đọc nhận xét cho bé nghe"
+}
+`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType, data: cleanBase64 } }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.6,
+            maxOutputTokens: 1200
+          }
+        })
       });
 
       if (response.ok) {
         const data = await response.json();
-        const feedbackText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (feedbackText) {
-          return parseFeedback(feedbackText, teacherName);
+        const rawJsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const cleanedJson = rawJsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedJson);
+
+        if (parsed.rubrics && parsed.rubrics.length === 4) {
+          return {
+            ...parsed,
+            visualStats,
+            teacher: teacherName,
+            raw: parsed.audioScript || parsed.headline || 'Bức tranh của con rất đẹp!'
+          };
         }
       }
     } catch (err) {
-      console.warn('Gemini API call failed:', err);
+      console.warn('Gemini vision API error, falling back to smart pedagogical analyzer:', err);
     }
   }
 
-  // 3. Fallback demo critique
-  return fallbackCritique(promptContext, teacher);
+  // 2. Trình Phân Tích Sư Phạm Mĩ Thuật Thông Minh (Deep Pedagogical Heuristic Analyzer)
+  return buildSmartPedagogicalCritique(visualStats, promptContext, teacher);
 }
 
-function parseFeedback(text, teacherName) {
-  return {
-    raw: text,
-    score: 10,
-    badge: '🏆 Họa Sĩ Nhí Xuất Sắc',
-    teacher: teacherName,
-    praise: extractSection(text, ['khen', 'điểm tốt', 'lời khen']) || 'Bức tranh của con tràn ngập màu sắc rực rỡ và nét vẽ vô cùng hồn nhiên, đáng yêu!',
-    tip: extractSection(text, ['gợi ý', 'mẹo nhỏ', 'cải thiện', 'để đẹp hơn']) || 'Con có thể tô thêm chút màu xanh biếc của bầu trời hoặc vẽ thêm vài chú chim nhỏ xíu bay lượn nhé!',
-    conclusion: `${teacherName} rất tự hào về tác phẩm này của con. Hãy tiếp tục cầm cọ và sáng tạo thêm nhiều bức tranh tuyệt đẹp nữa nha!`
-  };
-}
-
-function extractSection(text, keywords) {
-  const lines = text.split('\n');
-  let matched = [];
-  let recording = false;
-
-  for (const line of lines) {
-    const lower = line.toLowerCase();
-    const isKeyword = keywords.some(k => lower.includes(k));
-    
-    if (isKeyword) {
-      recording = true;
-      matched.push(line.replace(/^[#*-\d.\s]+/, ''));
-      continue;
-    }
-
-    if (recording) {
-      if (line.trim().startsWith('#') || line.trim().startsWith('1.') || line.trim().startsWith('2.') || line.trim().startsWith('3.')) {
-        if (!isKeyword) break;
-      }
-      if (line.trim()) matched.push(line.trim());
-    }
-  }
-
-  return matched.slice(0, 3).join(' ');
-}
-
-function fallbackCritique(context = '', teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy' }) {
+// Phân tích sư phạm chuyên sâu dựa trên dữ liệu ảnh thực tế và ngữ cảnh
+function buildSmartPedagogicalCritique(stats, context = '', teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy' }) {
   const teacherName = teacher.name || 'Thầy Cọ Nhí';
   const pronoun = teacher.pronoun || 'Thầy';
+  const ctx = (context || '').toLowerCase();
 
-  const praises = [
-    `Oa, ${pronoun} nhìn thấy một bức tranh tràn đầy năng lượng và sắc màu vui tươi của con!`,
-    `Bé yêu vẽ nét bút rất dứt khoát và tự tin đấy! Trông bức tranh sống động như đang chuyển động vậy.`,
-    `Cách con chọn màu sắc thật rực rỡ và ấm áp, đúng chất một họa sĩ nhí đầy tiềm năng!`
-  ];
+  let subjectName = 'tác phẩm của con';
+  if (/mèo|cún|chó|thỏ|chim|gà|cá|vật/i.test(ctx)) subjectName = 'nhân vật con vật đáng yêu';
+  else if (/nhà|phố|trường|cổng|cột/i.test(ctx)) subjectName = 'ngôi nhà và mái trường mến yêu';
+  else if (/người|bố|mẹ|ông|bà|thầy|cô|bạn/i.test(ctx)) subjectName = 'chân dung người thân thương';
+  else if (/biển|núi|cây|hoa|rừng|đồng/i.test(ctx)) subjectName = 'bức tranh phong cảnh thiên nhiên';
 
-  const tips = [
-    `Mẹo nhỏ của ${pronoun}: Con hãy thử vẽ thêm một vài đám mây trắng bồng bềnh và ông mặt trời mỉm cười ở góc tranh nhé!`,
-    `Bí quyết họa sĩ: Nếu con nhấn thêm một chút bóng râm màu đậm hơn ở bên dưới, bức tranh sẽ có chiều sâu 3D thần kỳ đấy!`,
-    `Gợi ý nho nhỏ: Con có thể tô màu kín đều các mảng trắng còn sót lại để tác phẩm hoàn hảo như tranh trong viện bảo tàng nha.`
-  ];
+  // 4 Rubrics Chuẩn GDPT 2018
+  const rubric1 = {
+    criterion: '1. Ý Tưởng & Tính Sáng Tạo',
+    stars: 5,
+    feedback: ctx.trim()
+      ? `Ý tưởng thể hiện ${subjectName} rất ngây thơ và giàu cảm xúc. Con biết lồng ghép những chi tiết độc đáo mang phong cách riêng của mình!`
+      : `Ý tưởng tạo hình của con rất tự nhiên, phóng khoáng. Mỗi nét vẽ đều toát lên trí tưởng tượng phong phú của một họa sĩ nhí đầy tài năng!`
+  };
 
-  const badges = [
-    "🌟 Bé Sáng Tạo Cừ Khôi",
-    "🎨 Phù Thủy Sắc Màu Nhí",
-    "🏆 Cây Cọ Vàng Tiểu Học",
-    "💖 Bàn Tay Khéo Léo"
-  ];
+  const rubric2 = {
+    criterion: '2. Bố Cục & Không Gian',
+    stars: 5,
+    feedback: stats.density === 'rich'
+      ? `Bố cục tranh của con rất đầy đặn (${stats.coveragePercent}% bề mặt), các mảng chính và mảng phụ được sắp xếp hài hòa, chặt chẽ, tạo cảm giác vô cùng sinh động!`
+      : `Chủ thể chính được con đặt ở vị trí trọng tâm rất rõ ràng. Không gian tranh thoáng đãng, giúp người xem dễ dàng nhận ra thông điệp bức vẽ!`
+  };
 
-  const randomPraise = praises[Math.floor(Math.random() * praises.length)];
-  const randomTip = tips[Math.floor(Math.random() * tips.length)];
-  const randomBadge = badges[Math.floor(Math.random() * badges.length)];
+  const rubric3 = {
+    criterion: '3. Kỹ Thuật Nét & Hình Khối',
+    stars: 5,
+    feedback: `Đường nét của con rất tự tin, liền mạch và dứt khoát. Các hình học cơ bản (tròn, vuông, tam giác) được con phối hợp nhuần nhuyễn để tạo dáng cho ${subjectName}.`
+  };
 
-  const fullText = `Chào Họa sĩ nhí của ${teacherName}! 🎨✨\n\n` +
-    `💖 **LỜI KHEN NGỌT NGÀO:**\n${randomPraise}\n\n` +
-    `💡 **MẸO NHỎ HỌA SĨ NHÍ:**\n${randomTip}\n\n` +
-    `🎉 **ĐÁNH GIÁ CHUẨN MĨ THUẬT:** 10/10 Điểm!\n` +
-    `Con nhận được danh hiệu: **${randomBadge}**!\n\n` +
-    `${pronoun} rất mong chờ được ngắm thêm các bức tranh tiếp theo của con. Hãy luôn tự tin sáng tạo nhé! 🌸`;
+  const rubric4 = {
+    criterion: '4. Màu Sắc & Cảm Xúc',
+    stars: 5,
+    feedback: `Bức tranh mang ${stats.colorDescription}. Cách con phối màu thể hiện tâm trạng vui tươi, hồn nhiên và mang lại cảm giác ấm áp cho người xem!`
+  };
+
+  // 3 Bước Cải Thiện Cụ Thể
+  const step1 = stats.density === 'light'
+    ? 'Bước 1 (Đậm nét): Con hãy dùng bút sáp đen hoặc sáp đậm viền lại các đường nét chính của hình để tranh nổi bật rõ ràng hơn.'
+    : 'Bước 1 (Nhấn chi tiết): Con có thể điểm xuyết thêm vài nét hoa văn nhỏ xinh trên thân hình nhân vật để tác phẩm thêm phần tinh tế.';
+
+  const step2 = stats.dominantColor === 'warm'
+    ? 'Bước 2 (Hòa sắc): Thử pha thêm một chút màu lam hoặc xanh lá mát dịu ở góc tranh để tạo độ tương phản bổ túc rực rỡ.'
+    : 'Bước 2 (Tạo bóng 3D): Nhấn thêm một vệt màu sẫm nhẹ ở phần dưới chân nhân vật để tạo bóng đổ, giúp bức tranh có chiều sâu 3D.';
+
+  const step3 = 'Bước 3 (Hoàn thiện nền): Tô màu đều các góc giấy còn trống, thêm vài đám mây trắng hoặc ánh mặt trời mỉm cười để tác phẩm trọn vẹn như tranh triển lãm.';
+
+  const badge = stats.density === 'rich' ? '🌟 Bậc Thầy Sắc Màu Nhí' : '🏆 Cây Cọ Vàng Tương Lai';
+
+  const audioScript = `Thầy chào họa sĩ nhí! Thầy vừa ngắm bức tranh của con và cảm thấy vô cùng xúc động. Nét vẽ của con rất tự tin, phối màu tươi vui và bố cục cân đối chuẩn mĩ thuật. Thầy chấm bức tranh của con đạt 10 trên 10 điểm tuyệt đối! Hãy tiếp tục sáng tạo con nhé!`;
 
   return {
-    raw: fullText,
     score: 10,
-    badge: randomBadge,
-    teacher: teacherName,
-    praise: randomPraise,
-    tip: randomTip,
-    conclusion: `${teacherName} rất yêu thích sự sáng tạo của con! Cố gắng phát huy con nhé!`
+    badge,
+    headline: `Oa, ${pronoun} rất khâm phục tài năng hội họa của con! Một bức tranh đạt chuẩn mĩ thuật xuất sắc!`,
+    rubrics: [rubric1, rubric2, rubric3, rubric4],
+    improvements: [step1, step2, step3],
+    visualStats: stats,
+    teacherMessage: `${pronoun} rất tự hào về tinh thần tự tin và bàn tay khéo léo của con. Mỗi bức tranh con vẽ đều là một viên ngọc quý!`,
+    audioScript,
+    raw: audioScript,
+    praise: rubric1.feedback + ' ' + rubric4.feedback,
+    tip: step1 + ' ' + step2,
+    conclusion: `${teacherName} chấm bài vẽ của con điểm 10/10 xuất sắc!`
   };
 }
 
+// 3. Trợ lý đàm thoại sư phạm 2 chiều
 export async function generateTeacherResponse(userMessage, unit, apiKey, teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy' }) {
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
   const unitTitle = unit?.title || 'Bài học Mĩ thuật';
 
-  // Check if student is asking for a sample drawing or sketch
-  const isAskingForImage = /vẽ mẫu|tranh mẫu|xem hình|cho con xem|hình mẫu|xem tranh/i.test(userMessage);
+  // Sinh tranh mẫu khi học sinh yêu cầu
+  const isAskingForImage = /vẽ mẫu|tranh mẫu|xem hình|cho con xem|hình mẫu|xem tranh|vẽ giúp/i.test(userMessage);
   let imageUrl = null;
   if (isAskingForImage) {
-    const prompt = encodeURIComponent(`cute colorful children book illustration, primary school art for ${unitTitle}, simple cheerful watercolor style, by master artist`);
-    imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=600&height=400&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
+    const prompt = encodeURIComponent(`an authentic hand-drawn watercolor crayon art for primary school kids about ${unitTitle}, simple cheerful lines on textured sketchbook paper, masterpiece, no 3D`);
+    imageUrl = `https://image.pollinations.ai/prompt/${prompt}?width=600&height=400&model=flux&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
   }
 
   const trimmedKey = (apiKey || '').trim();
 
-  // 1. Google Gemini Flash API
   if (trimmedKey && !trimmedKey.startsWith('hf_')) {
     try {
       const response = await fetch(
@@ -267,13 +330,13 @@ Hãy trả lời bé bằng giọng điệu ấm áp, xưng "${pronoun}", độn
     }
   }
 
-  // 2. Intelligent Pedagogical Fallback Response
+  // Phản hồi sư phạm thông minh theo từ khóa mĩ thuật
   let replyText = `${teacherName} chào con! Về bài học "${unitTitle}", ${pronoun} khuyên con hãy bắt đầu phác các nét lớn hình học trước, sau đó phối màu tương phản thật tươi sáng. Con hãy thử vẽ ngay trên Bảng vẽ nhé! 🎨✨`;
 
   if (/pha màu|màu sắc/i.test(userMessage)) {
     replyText = `Bí quyết của ${pronoun} đây: Con hãy dùng 3 màu gốc Đỏ, Vàng, Lam nhé. Đỏ pha Vàng thành Cam ấm áp, Vàng pha Lam thành Xanh lá mát rượi đấy! 🌈`;
   } else if (/xa gần|không gian|phối cảnh/i.test(userMessage)) {
-    replyText = `Công thức luật xa gần của ${pronoun} cực dễ nhớ: "Gần thì To và Rõ, Xa thì Nhỏ và Mờ". Con kẻ đường chân trời ở khoảng một phần ba tranh là chuẩn nhất nha! 🌾`;
+    replyText = `Công thức luật xa gần của ${pronoun} cực dễ nhớ: "Gần thì To và Rõ, Xa thì Nhỏ và Mờ". Con kẻ đường chân trời ở khoảng một phần ba trang giấy là chuẩn nhất nha! 🌾`;
   } else if (/đẹp|khen/i.test(userMessage)) {
     replyText = `${pronoun} tin chắc bức tranh của con sẽ rất xuất sắc! Mỗi nét vẽ tự tin của con đều chứa đựng sự sáng tạo tuyệt vời. Cố lên con nhé! 🌟`;
   }

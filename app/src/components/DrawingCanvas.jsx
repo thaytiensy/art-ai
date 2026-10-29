@@ -37,7 +37,7 @@ const BRUSH_SIZES = [
 
 const STICKERS = ['⭐', '❤️', '🌸', '🌈', '☀️', '🐱', '🐶', '🚀', '🍦', '🎨'];
 
-export default function DrawingCanvas({ onAskTeacher, teacher }) {
+export default function DrawingCanvas({ onAskTeacher, teacher, templateImage, onClearTemplate }) {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#EF4444');
@@ -63,6 +63,33 @@ export default function DrawingCanvas({ onAskTeacher, teacher }) {
 
     saveState();
   }, []);
+
+  // Nạp tranh mẫu từ Xưởng Ý Tưởng vào bảng vẽ để bé tập tô & đồ nét
+  useEffect(() => {
+    if (!templateImage) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const scale = Math.min((canvas.width * 0.92) / img.width, (canvas.height * 0.92) / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const x = (canvas.width - w) / 2;
+      const y = (canvas.height - h) / 2;
+
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(img, x, y, w, h);
+      ctx.globalAlpha = 1.0;
+      saveState();
+    };
+    img.src = templateImage;
+  }, [templateImage]);
 
   const saveState = () => {
     const canvas = canvasRef.current;
@@ -226,6 +253,27 @@ export default function DrawingCanvas({ onAskTeacher, teacher }) {
           <span>Nhờ {teacherName} Nhận Xét Tranh</span>
         </button>
       </div>
+
+      {/* Tranh Mẫu Đang Mở Để Tập Tô */}
+      {templateImage && (
+        <div className="bg-purple-100 border-2 border-purple-300 px-4 py-2.5 rounded-2xl flex items-center justify-between gap-3 text-purple-900 text-xs sm:text-sm font-black shadow-sm">
+          <div className="flex items-center gap-2">
+            <span>✨</span>
+            <span>Đang mở tranh mẫu từ Xưởng Ý Tưởng để bé tập tô & đồ nét!</span>
+          </div>
+          {onClearTemplate && (
+            <button
+              onClick={() => {
+                onClearTemplate();
+                clearCanvas();
+              }}
+              className="px-3 py-1 bg-white hover:bg-purple-50 text-purple-700 rounded-xl border border-purple-300 text-xs font-extrabold shadow-sm"
+            >
+              Vẽ Trang Trắng Mới ✕
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Control Tools Bar */}
       <div className="bg-white/95 backdrop-blur p-4 rounded-3xl shadow-md border-2 border-amber-200 flex flex-wrap items-center justify-between gap-4">

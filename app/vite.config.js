@@ -63,16 +63,30 @@ export default defineConfig({
               } catch (e) {}
             };
 
-            // Spawn Edge-TTS process with UTF-8 file
-            const ttsProcess = spawn('uvx', [
-              'edge-tts',
-              '--voice', voice,
-              '--file', tempFile,
-              '--write-media', '-'
-            ], { windowsHide: true });
+            // Ưu tiên chạy edge-tts.exe trực tiếp để giảm độ trễ (không qua uvx wrapper)
+            const localEdgeExe = path.join(os.homedir(), '.local', 'bin', 'edge-tts.exe');
+            const useDirectExe = fs.existsSync(localEdgeExe);
+            const exeCmd = useDirectExe ? localEdgeExe : 'uvx';
+            const exeArgs = useDirectExe
+              ? ['--voice', voice, '--file', tempFile, '--write-media', '-']
+              : ['edge-tts', '--voice', voice, '--file', tempFile, '--write-media', '-'];
+
+            // Gửi header sớm để trình duyệt có thể stream âm thanh ngay lập tức
+            res.writeHead(200, {
+              'Content-Type': 'audio/mpeg',
+              'Transfer-Encoding': 'chunked',
+              'Accept-Ranges': 'bytes',
+              'Cache-Control': 'public, max-age=86400'
+            });
+
+            // Spawn Edge-TTS process
+            const ttsProcess = spawn(exeCmd, exeArgs, { windowsHide: true });
 
             ttsProcess.stdout.on('data', (chunk) => {
               chunks.push(chunk);
+              if (!res.writableEnded) {
+                res.write(chunk);
+              }
             });
 
             ttsProcess.stderr.on('data', (chunk) => {
@@ -86,21 +100,13 @@ export default defineConfig({
               if (code === 0 && chunks.length > 0) {
                 const audioBuffer = Buffer.concat(chunks);
                 ttsCache.set(cacheKey, audioBuffer);
-
-                if (!res.headersSent) {
-                  res.writeHead(200, {
-                    'Content-Type': 'audio/mpeg',
-                    'Content-Length': audioBuffer.length,
-                    'Accept-Ranges': 'bytes',
-                    'Cache-Control': 'public, max-age=86400'
-                  });
-                  res.end(audioBuffer);
+                if (!res.writableEnded) {
+                  res.end();
                 }
               } else {
-                console.error('Edge-TTS exited with error code', code);
-                if (!res.headersSent) {
-                  res.statusCode = 500;
-                  res.end('Edge-TTS failed');
+                console.error('Edge-TTS exited with code', code);
+                if (!res.writableEnded) {
+                  res.end();
                 }
               }
             });
@@ -108,33 +114,30 @@ export default defineConfig({
             ttsProcess.on('error', (err) => {
               console.error('Edge-TTS spawn error:', err.message);
               cleanupTemp();
-              if (!processClosed && !res.headersSent) {
+              if (!processClosed && !res.writableEnded) {
                 processClosed = true;
-                res.statusCode = 500;
-                res.end(err.message);
+                res.end();
               }
             });
 
             req.on('close', () => {
               cleanupTemp();
               if (!processClosed) {
-                ttsProcess.kill();
+                try { ttsProcess.kill(); } catch (e) {}
               }
             });
 
-            // Timeout safety: if edge-tts takes > 15s
+            // Timeout safety: if edge-tts takes > 12s
             setTimeout(() => {
-              if (!processClosed && chunks.length === 0) {
+              if (!processClosed) {
                 processClosed = true;
                 cleanupTemp();
                 try { ttsProcess.kill(); } catch (e) {}
-                console.warn('Edge-TTS timeout');
-                if (!res.headersSent) {
-                  res.statusCode = 504;
-                  res.end('TTS Gateway Timeout');
+                if (!res.writableEnded) {
+                  res.end();
                 }
               }
-            }, 15000);
+            }, 12000);
 
           } catch (e) {
             console.error('TTS middleware error:', e);

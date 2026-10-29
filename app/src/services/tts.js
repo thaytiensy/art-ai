@@ -1,5 +1,5 @@
 // ART AI: 100% Vietnamese Male Art Teacher Voice Engine (Thầy Cọ Nhí)
-// Uses Microsoft Edge Neural TTS (vi-VN-NamMinhNeural) with server-side Google TTS fallback
+// Uses Microsoft Edge Neural TTS (vi-VN-NamMinhNeural) with instant streaming and anti-concurrency guards
 
 class TeacherSpeechService {
   constructor() {
@@ -8,6 +8,7 @@ class TeacherSpeechService {
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
     this.pendingText = null;
     this.pendingCallbacks = null;
+    this.currentSessionId = 0;
 
     // Listen for user interaction to unlock autoplay in browser
     if (typeof window !== 'undefined') {
@@ -26,19 +27,43 @@ class TeacherSpeechService {
   }
 
   stop() {
+    // Increment sessionId to invalidate any in-flight async operations
+    this.currentSessionId++;
+
     if (this.audioPlayer) {
       try {
         this.audioPlayer.pause();
-        this.audioPlayer.currentTime = 0;
+        this.audioPlayer.removeAttribute('src');
+        this.audioPlayer.load(); // Cancels pending network download immediately
       } catch (e) {}
       this.audioPlayer = null;
     }
+
     if (this.synth && this.synth.speaking) {
       try {
         this.synth.cancel();
       } catch (e) {}
     }
+
     this.isSpeaking = false;
+  }
+
+  // Preload audio into server RAM cache without playing
+  preload(text) {
+    if (!text) return;
+    const cleanText = text
+      .replace(/[#*_`~-]/g, '')
+      .replace(/\n+/g, '. ')
+      .replace(/https?:\/\/\S+/g, '')
+      .slice(0, 500)
+      .trim();
+    if (!cleanText) return;
+
+    const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}`;
+    // Fire and forget fetch to warm server memory cache
+    if (typeof fetch !== 'undefined') {
+      fetch(ttsUrl).catch(() => {});
+    }
   }
 
   speak(text, onStart, onEnd) {
@@ -48,82 +73,69 @@ class TeacherSpeechService {
       .replace(/[#*_`~-]/g, '')
       .replace(/\n+/g, '. ')
       .replace(/https?:\/\/\S+/g, '')
+      .slice(0, 500)
       .trim();
 
     if (!cleanText) return;
 
-    const encoded = encodeURIComponent(cleanText.slice(0, 600));
-    // Ưu tiên số 1: Backend TTS stream chuẩn vi-VN-NamMinhNeural (đã đệm file UTF-8)
-    const ttsUrl = `/api/tts?text=${encoded}&t=${Date.now()}`;
+    // Capture unique session ID to prevent race conditions & double-voice
+    const activeSession = this.currentSessionId;
+    const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}`;
 
     const audio = new Audio(ttsUrl);
-    audio.src = ttsUrl;
     this.audioPlayer = audio;
 
     audio.onplay = () => {
+      if (this.currentSessionId !== activeSession) {
+        try { audio.pause(); } catch (e) {}
+        return;
+      }
       this.isSpeaking = true;
       if (onStart) onStart();
     };
 
     audio.onended = () => {
+      if (this.currentSessionId !== activeSession) return;
       this.isSpeaking = false;
       this.audioPlayer = null;
       if (onEnd) onEnd();
     };
 
     audio.onerror = (e) => {
-      console.warn('Backend TTS error, retrying male teacher voice...', e);
+      if (this.currentSessionId !== activeSession) return;
+      console.warn('Backend audio stream issue for Thầy voice:', e);
       this.audioPlayer = null;
-      // Do NOT fallback to female Google TTS to guarantee 100% male teacher voice
-      setTimeout(() => {
-        const retryAudio = new Audio(ttsUrl);
-        this.audioPlayer = retryAudio;
-        retryAudio.onplay = () => {
-          this.isSpeaking = true;
-          if (onStart) onStart();
-        };
-        retryAudio.onended = () => {
-          this.isSpeaking = false;
-          this.audioPlayer = null;
-          if (onEnd) onEnd();
-        };
-        retryAudio.onerror = () => {
-          this.isSpeaking = false;
-          this.audioPlayer = null;
-          if (onEnd) onEnd();
-        };
-        retryAudio.play().catch(() => {
-          this.isSpeaking = false;
-          this.audioPlayer = null;
-          if (onEnd) onEnd();
-        });
-      }, 500);
+      // Do not launch rogue timeout or double voice; attempt verified WebSpeech fallback only
+      this.fallbackWebSpeech(cleanText, onStart, onEnd, activeSession);
     };
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch((err) => {
-        // Nếu trình duyệt chặn Autoplay do bé chưa bấm chuột lên trang
+        if (this.currentSessionId !== activeSession) return;
+
+        // Trình duyệt chặn autoplay khi người dùng chưa tương tác chuột
         if (err.name === 'NotAllowedError') {
           console.log('Autoplay chờ bé bấm chuột vào trang để Thầy bắt đầu nói.');
           this.pendingText = cleanText;
           this.pendingCallbacks = { onStart, onEnd };
-        } else {
-          console.warn('Audio play error:', err);
-          this.fallbackWebSpeech(cleanText, onStart, onEnd);
+        } else if (err.name !== 'AbortError') {
+          console.warn('Audio play error, falling back to local male voice:', err);
+          this.fallbackWebSpeech(cleanText, onStart, onEnd, activeSession);
         }
       });
     }
   }
 
-  fallbackWebSpeech(cleanText, onStart, onEnd) {
+  fallbackWebSpeech(cleanText, onStart, onEnd, session) {
+    if (session !== undefined && this.currentSessionId !== session) return;
     if (!this.synth) {
       if (onEnd) onEnd();
       return;
     }
 
     const voices = this.synth.getVoices();
-    // BẮT BUỘC: CHỈ chọn giọng NAM tiếng Việt (NamMinh / Male). TUYỆT ĐỐI KHÔNG chọn HoaiMy (Nữ), Mai, Linh, Chi hay tiếng Anh!
+    // BẮT BUỘC: CHỈ chọn giọng NAM tiếng Việt (NamMinh / Male). TUYỆT ĐỐI KHÔNG chọn giọng Nữ hay tiếng Anh!
     const maleViVoice = voices.find(v => {
       const name = v.name.toLowerCase();
       const lang = (v.lang || '').toLowerCase();
@@ -141,7 +153,7 @@ class TeacherSpeechService {
     });
 
     if (!maleViVoice) {
-      console.warn('WebSpeech không có giọng Nam tiếng Việt xác thực (NamMinh). Ưu tiên phát từ backend của Thầy.');
+      console.warn('WebSpeech không có giọng Nam tiếng Việt xác thực (NamMinh). Giữ yên lặng để đảm bảo chuẩn giọng Thầy.');
       this.isSpeaking = false;
       if (onEnd) onEnd();
       return;
@@ -154,14 +166,20 @@ class TeacherSpeechService {
     utterance.rate = 0.95;
 
     utterance.onstart = () => {
+      if (session !== undefined && this.currentSessionId !== session) {
+        try { this.synth.cancel(); } catch (e) {}
+        return;
+      }
       this.isSpeaking = true;
       if (onStart) onStart();
     };
     utterance.onend = () => {
+      if (session !== undefined && this.currentSessionId !== session) return;
       this.isSpeaking = false;
       if (onEnd) onEnd();
     };
     utterance.onerror = () => {
+      if (session !== undefined && this.currentSessionId !== session) return;
       this.isSpeaking = false;
       if (onEnd) onEnd();
     };

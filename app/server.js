@@ -101,14 +101,28 @@ function handleTts(url, res) {
     try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (e) {}
   };
 
-  const p = spawn('uvx', [
-    'edge-tts',
-    '--voice', 'vi-VN-NamMinhNeural',
-    '--file', tempFile,
-    '--write-media', '-'
-  ], { windowsHide: true });
+  const localEdgeExe = path.join(os.homedir(), '.local', 'bin', 'edge-tts.exe');
+  const useDirectExe = fs.existsSync(localEdgeExe);
+  const exeCmd = useDirectExe ? localEdgeExe : 'uvx';
+  const exeArgs = useDirectExe
+    ? ['--voice', 'vi-VN-NamMinhNeural', '--file', tempFile, '--write-media', '-']
+    : ['edge-tts', '--voice', 'vi-VN-NamMinhNeural', '--file', tempFile, '--write-media', '-'];
 
-  p.stdout.on('data', c => chunks.push(c));
+  res.writeHead(200, {
+    'Content-Type': 'audio/mpeg',
+    'Transfer-Encoding': 'chunked',
+    'Accept-Ranges': 'bytes',
+    'Cache-Control': 'public, max-age=86400'
+  });
+
+  const p = spawn(exeCmd, exeArgs, { windowsHide: true });
+
+  p.stdout.on('data', c => {
+    chunks.push(c);
+    if (!res.writableEnded) {
+      res.write(c);
+    }
+  });
 
   p.on('close', code => {
     processClosed = true;
@@ -116,41 +130,34 @@ function handleTts(url, res) {
     if (code === 0 && chunks.length > 0) {
       const audioBuffer = Buffer.concat(chunks);
       ttsCache.set(cleanText, audioBuffer);
-      res.writeHead(200, {
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.length,
-        'Cache-Control': 'public, max-age=86400'
-      });
-      res.end(audioBuffer);
+      if (!res.writableEnded) {
+        res.end();
+      }
     } else {
-      console.error('Edge-TTS exited with code', code);
-      if (!res.headersSent) {
-        res.writeHead(500);
-        res.end('Edge-TTS error');
+      if (!res.writableEnded) {
+        res.end();
       }
     }
   });
 
   p.on('error', (err) => {
     cleanup();
-    if (!processClosed && !res.headersSent) {
+    if (!processClosed && !res.writableEnded) {
       processClosed = true;
-      res.writeHead(500);
-      res.end('Spawn error: ' + err.message);
+      res.end();
     }
   });
 
   setTimeout(() => {
-    if (!processClosed && chunks.length === 0) {
+    if (!processClosed) {
       processClosed = true;
       cleanup();
       try { p.kill(); } catch (e) {}
-      if (!res.headersSent) {
-        res.writeHead(504);
-        res.end('Timeout');
+      if (!res.writableEnded) {
+        res.end();
       }
     }
-  }, 15000);
+  }, 12000);
 }
 
 server.listen(PORT, () => {

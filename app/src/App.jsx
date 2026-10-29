@@ -22,6 +22,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState('');
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [critiqueImage, setCritiqueImage] = useState(null);
+  const [canvasTemplate, setCanvasTemplate] = useState(null);
   
   // 100% Persona: Thầy Giáo Mĩ Thuật (Thầy Cọ Nhí với ảnh chân dung thực tế)
   const teacher = { 
@@ -195,6 +196,8 @@ export default function App() {
           <DrawingCanvas 
             onAskTeacher={handleAskTeacherFromCanvas} 
             teacher={teacher}
+            templateImage={canvasTemplate}
+            onClearTemplate={() => setCanvasTemplate(null)}
           />
         )}
 
@@ -212,7 +215,12 @@ export default function App() {
         )}
 
         {activeTab === 'inspiration' && (
-          <InspirationView />
+          <InspirationView
+            onSendToCanvas={(imgUrl) => {
+              setCanvasTemplate(imgUrl);
+              setActiveTab('canvas');
+            }}
+          />
         )}
       </main>
 

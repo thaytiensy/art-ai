@@ -66,6 +66,17 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, te
     setIsSpeaking(false);
   };
 
+  // Preload/Pre-warm âm thanh bài giảng của các slide trong nền để chuyển slide nghe được ngay lập tức (0ms độ trễ)
+  useEffect(() => {
+    if (selectedUnit?.powerpointSlides) {
+      selectedUnit.powerpointSlides.forEach((s) => {
+        if (s.teacherLecture) {
+          ttsService.preload(s.teacherLecture);
+        }
+      });
+    }
+  }, [selectedUnit]);
+
   // When switching slides, auto speak lecture if voice is enabled
   useEffect(() => {
     if (viewMode === 'powerpoint' && voiceEnabled && currentSlide?.teacherLecture) {
