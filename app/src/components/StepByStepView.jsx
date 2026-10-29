@@ -1,29 +1,51 @@
 import React, { useState } from 'react';
 import { DRAWING_LESSONS } from '../data/lessons';
-import { ChevronRight, ChevronLeft, Sparkles, BookOpen } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles, BookOpen, Volume2, VolumeX } from 'lucide-react';
+import { ttsService } from '../services/tts';
 
 export default function StepByStepView({ onSelectToDraw }) {
   const [selectedLesson, setSelectedLesson] = useState(DRAWING_LESSONS[0]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleSelectLesson = (lesson) => {
     setSelectedLesson(lesson);
     setCurrentStepIndex(0);
+    ttsService.stop();
+    setIsSpeaking(false);
   };
 
   const nextStep = () => {
+    ttsService.stop();
+    setIsSpeaking(false);
     if (currentStepIndex < selectedLesson.steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     }
   };
 
   const prevStep = () => {
+    ttsService.stop();
+    setIsSpeaking(false);
     if (currentStepIndex > 0) {
       setCurrentStepIndex(currentStepIndex - 1);
     }
   };
 
   const activeStep = selectedLesson.steps[currentStepIndex];
+
+  const toggleSpeakStep = () => {
+    if (isSpeaking) {
+      ttsService.stop();
+      setIsSpeaking(false);
+    } else {
+      const textToSpeak = `Bước ${activeStep.step}: ${activeStep.title}. ${activeStep.detail}. Bí quyết của Thầy: ${activeStep.tip}`;
+      ttsService.speak(
+        textToSpeak,
+        () => setIsSpeaking(true),
+        () => setIsSpeaking(false)
+      );
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-6 flex flex-col gap-6">
@@ -145,8 +167,22 @@ export default function StepByStepView({ onSelectToDraw }) {
 
             {/* Step Instructions */}
             <div className="flex-1 flex flex-col gap-3">
-              <div className="inline-block px-3 py-1 bg-amber-400 text-amber-950 font-black text-xs rounded-full w-max shadow-sm">
-                BƯỚC {activeStep.step} / {selectedLesson.steps.length}
+              <div className="flex items-center justify-between">
+                <div className="inline-block px-3 py-1 bg-amber-400 text-amber-950 font-black text-xs rounded-full shadow-sm">
+                  BƯỚC {activeStep.step} / {selectedLesson.steps.length}
+                </div>
+
+                <button
+                  onClick={toggleSpeakStep}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm ${
+                    isSpeaking
+                      ? 'bg-rose-500 text-white animate-pulse'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  <span>{isSpeaking ? 'Dừng' : 'Nghe Thầy'}</span>
+                </button>
               </div>
 
               <h4 className="text-xl font-black text-gray-800">

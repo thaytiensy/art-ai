@@ -60,10 +60,16 @@ Mỗi khi người dùng gửi một yêu cầu mới, thực hiện nghiêm ng�
 flowchart TD
     A["Bước 1: Tiếp nhận lệnh & Soi chiếu Tầng 1 (GEMINI.md)"] --> B["Bước 2: Xác định Điểm Dừng Tầng 2 (Checkpoint & Next Steps)"]
     B --> C["Bước 3: Khảo sát Hiện Trường Tầng 3 (Disk Files & Background Tasks)"]
-    C --> D["Bước 4: Tra cứu Tầng 4 (NotebookLM MCP) & Triển khai chính xác"]
+    C --> D["Bước 4: Tra cứu Tầng 4 (NotebookLM MCP) & Triển khai tính năng"]
+    D --> E["Bước 5: Kiểm định Thống Nhất & Chống Thất Thoát Mã (QA 4 Tiêu Chí)"]
 ```
 
-1. **Bước 1 (Soi chiếu Tầng 1):** Xác nhận yêu cầu có gắn liền với tư cách "Thầy giáo mĩ thuật", chuẩn GDPT 2018 và ngăn ngừa các giải pháp có phí.
+1. **Bước 1 (Soi chiếu Tầng 1):** Xác nhận yêu cầu có gắn liền với tư cách "Thầy giáo mĩ thuật", chuẩn GDPT 2018 & SGK Kết nối tri thức và ngăn ngừa các giải pháp có phí.
 2. **Bước 2 (Xác định Điểm Dừng Tầng 2):** Đọc kỹ tóm tắt ngữ cảnh gần nhất, nắm chắc trạng thái đang dang dở để triển khai tiếp liền mạch.
 3. **Bước 3 (Khảo sát Hiện Trường Tầng 3):** Kiểm tra file thực tế trên ổ cứng và trạng thái của server `http://localhost:3000`. Không làm ghi đè hay hỏng các tính năng đã chạy tốt (như Bong bóng Thầy giáo, Edge TTS tiếng Việt, Bảng vẽ).
-4. **Bước 4 (Triển khai & Kiểm thử):** Thực hiện thay đổi, biên dịch kiểm tra (`npm run build`), xác nhận kết quả và báo cáo rõ ràng, ngắn gọn cho người dùng.
+4. **Bước 4 (Triển khai tính năng):** Viết mã sạch, đầy đủ export/import, đúng chức năng yêu cầu.
+5. **Bước 5 (Kiểm định toàn diện - Bắt buộc trước khi báo cáo):**
+   * **Tính Thống Nhất:** 100% hình ảnh Thầy giáo (`/teacher.jpg`), 100% giọng nam tiếng Việt (`vi-VN-NamMinhNeural`), SGK Kết nối tri thức với cuộc sống.
+   * **Không Trùng Lặp:** Xóa bỏ các file dữ liệu mồ côi không còn dùng, không khai báo code trùng lặp.
+   * **Không Mất Mã Code:** Rà soát toàn bộ `import` và `export`, bảo đảm các state, prop, callback hoạt động trơn tru.
+   * **Biên Dịch Sản Xuất:** Chạy `npm run build` đạt **0 lỗi (0 errors)** và kiểm tra HTTP 200 trước khi bàn giao cho người dùng.

@@ -47,15 +47,19 @@ export default function InspirationView() {
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-400 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-4xl shadow-inner animate-bounce-gentle">
-            ✨
+          <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-xl shrink-0">
+            <img
+              src="/teacher.jpg"
+              alt="Thầy Cọ Nhí"
+              className="w-full h-full object-cover animate-bounce-gentle"
+            />
           </div>
           <div>
             <h2 className="text-2xl sm:text-3xl font-black">
               Xưởng Cảm Hứng & Khám Phá Nghệ Thuật
             </h2>
             <p className="text-sm sm:text-base font-semibold text-purple-100">
-              Biến mọi ý tưởng ngộ nghĩnh của bé thành tranh mẫu tham khảo hoàn toàn miễn phí!
+              Cùng Thầy biến mọi ý tưởng ngộ nghĩnh của bé thành tranh mẫu tham khảo hoàn toàn miễn phí!
             </p>
           </div>
         </div>

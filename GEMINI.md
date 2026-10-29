@@ -64,7 +64,26 @@
 ## 5. KỸ NĂNG BẮT BUỘC: KIẾN TRÚC BỘ NHỚ 4 TẦNG & ĐIỀU PHỐI THỰC THI (art-ai-memory-framework)
 > [!IMPORTANT]
 > **Mỗi khi nhận và thực hiện bất kỳ lệnh nào của người dùng, tác nhân BẮT BUỘC kích hoạt và tuân thủ quy trình 4 tầng:**
-> 1. **Tầng 1 (Tôn chỉ tệp GEMINI.md):** Luôn giữ vững hình tượng Thầy giáo với ảnh chân dung thực tế, chuẩn GDPT 2018, miễn phí 100%.
+> 1. **Tầng 1 (Tôn chỉ tệp GEMINI.md):** Luôn giữ vững hình tượng Thầy giáo với ảnh chân dung thực tế, chuẩn GDPT 2018 & SGK Kết nối tri thức, miễn phí 100%.
 > 2. **Tầng 2 (Bản chụp Checkpoint):** Đọc kỹ điểm dừng của phiên trước, nắm trọn yêu cầu của người dùng, không hỏi lại điều đã biết.
-> 3. **Tầng 3 (Hiện trường Ổ đĩa & Live Daemon):** Đọc code thực tế trước khi sửa, bảo vệ tiến trình nền `task-388` (`http://localhost:3000`), không để gãy tính năng cũ.
+> 3. **Tầng 3 (Hiện trường Ổ đĩa & Live Daemon):** Đọc code thực tế trước khi sửa, bảo vệ tiến trình nền server (`http://localhost:3000`), không để gãy tính năng cũ.
 > 4. **Tầng 4 (NotebookLM MCP):** Tra cứu kho tri thức sư phạm `e8157708-4226-4be0-bbba-1780b69ab77d` khi bổ sung giáo trình hoặc bài tập.
+
+---
+
+## 6. QUY TẮC BẮT BUỘC: KIỂM ĐỊNH TOÀN DIỆN & CHỐNG THẤT THOÁT MÃ NGUỒN (ANTI-REGRESSION & QA PROTOCOL)
+> [!CAUTION]
+> **Sau khi hoàn thành bất kỳ tính năng hoặc sửa lỗi nào, tác nhân BẮT BUỘC thực hiện kiểm tra 4 tiêu chí trước khi báo cáo kết quả:**
+> 1. **Tính Thống Nhất (Consistency):**
+>    - Nhân vật: 100% "Thầy Giáo Mĩ Thuật" (Thầy Cọ Nhí), ảnh đại diện thực tế `/teacher.jpg` ở tất cả các tab (Header, Lớp học Kết nối tri thức, Bảng vẽ, Mắt thần chấm tranh, Vẽ từng bước, Xưởng ý tưởng, Bong bóng giảng bài).
+>    - Giọng nói: 100% Giọng nam tiếng Việt tự nhiên (`vi-VN-NamMinhNeural`), tuyệt đối không để giọng nữ hay giọng tiếng Anh phát ra.
+>    - Giáo trình: Đồng nhất phân loại Lớp 1 - 5 theo bộ sách "Kết nối tri thức với cuộc sống", có cả Giáo án Word (CV 2345) và Slide PowerPoint.
+> 2. **Không Trùng Lặp (Zero Redundancy):**
+>    - Không giữ các file dữ liệu mồ côi hoặc không còn được import.
+>    - Loại bỏ triệt để các hàm/biến thừa, không để logic đối kháng nhau.
+> 3. **Không Mất Mã Code (Zero Missing Code):**
+>    - Kiểm tra chặt chẽ mọi lệnh `import` và `export`.
+>    - Đảm bảo các prop, callback, state truyền giữa các component không bị thiếu hoặc undefined.
+> 4. **Kiểm Định Biên Dịch Thực Tế (Build Verification):**
+>    - Bắt buộc chạy `npm run build` xác nhận hoàn thành với **0 lỗi (0 errors)**.
+>    - Kiểm tra đường truyền server trả về mã `200 OK`.
