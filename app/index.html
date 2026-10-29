@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ART AI - Thầy Giáo Mĩ Thuật Dạy Học (Lớp 1-5)</title>
+    <!-- PWA Meta Tags & Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/jpeg" href="/teacher.jpg" />
+    <link rel="apple-touch-icon" href="/teacher.jpg" />
+    <meta name="theme-color" content="#e11d48" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ART AI Thầy Cọ Nhí" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              kids: ['Nunito', 'sans-serif'],
+            },
+            colors: {
+              kidYellow: '#FDE047',
+              kidOrange: '#FB923C',
+              kidPink: '#F472B6',
+              kidBlue: '#38BDF8',
+              kidGreen: '#4ADE80',
+              kidPurple: '#C084FC',
+            },
+            keyframes: {
+              bounceGentle: {
+                '0%, 100%': { transform: 'translateY(-4%)' },
+                '50%': { transform: 'translateY(0)' },
+              },
+              wiggle: {
+                '0%, 100%': { transform: 'rotate(-3deg)' },
+                '50%': { transform: 'rotate(3deg)' },
+              }
+            },
+            animation: {
+              'bounce-gentle': 'bounceGentle 2s infinite ease-in-out',
+              'wiggle': 'wiggle 1s ease-in-out infinite',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Nunito', sans-serif;
+        user-select: none;
+      }
+      /* Custom kid-friendly scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #fdf2f8;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #f472b6;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #ec4899;
+      }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-amber-50 via-pink-50 to-sky-50 text-gray-800 min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <!-- Register PWA Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then((reg) => {
+            console.log('PWA Service Worker registered:', reg.scope);
+          }).catch((err) => {
+            console.log('PWA SW registration failed:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
