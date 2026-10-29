@@ -123,26 +123,34 @@ class TeacherSpeechService {
     }
 
     const voices = this.synth.getVoices();
-    // CHỈ đọc nếu tìm thấy giọng tiếng Việt chuẩn, TUYỆT ĐỐI KHÔNG để giọng tiếng Anh đọc nhái tiếng Việt!
-    const viVoice = voices.find(v => 
-      v.lang.startsWith('vi') || 
-      v.lang.toLowerCase().includes('vietnam') ||
-      v.name.toLowerCase().includes('vietnam') ||
-      v.name.toLowerCase().includes('an') ||
-      v.name.toLowerCase().includes('nam')
-    );
+    // BẮT BUỘC: CHỈ chọn giọng NAM tiếng Việt (NamMinh / Male). TUYỆT ĐỐI KHÔNG chọn HoaiMy (Nữ), Mai, Linh, Chi hay tiếng Anh!
+    const maleViVoice = voices.find(v => {
+      const name = v.name.toLowerCase();
+      const lang = (v.lang || '').toLowerCase();
+      const isVietnamese = lang.startsWith('vi') || lang.includes('vietnam');
+      if (!isVietnamese) return false;
 
-    if (!viVoice) {
-      console.warn('Windows không cài sẵn giọng tiếng Việt WebSpeech, giữ im lặng thay vì đọc giọng ngoại quốc.');
+      // Danh sách đen: Tuyệt đối không chọn bất kỳ giọng nữ nào
+      const isFemale = /(hoaimy|mai|linh|chi|nu|female|woman|girl|an\b)/i.test(name);
+      if (isFemale) return false;
+
+      // Phải có định danh giọng Nam chuẩn (NamMinh hoặc Nam / Male rõ ràng, không tính từ 'vietnam')
+      const isNamMinh = name.includes('namminh');
+      const isExplicitMale = /\b(nam|male)\b/i.test(name.replace(/vietnam/gi, ''));
+      return isNamMinh || isExplicitMale;
+    });
+
+    if (!maleViVoice) {
+      console.warn('WebSpeech không có giọng Nam tiếng Việt xác thực (NamMinh). Ưu tiên phát từ backend của Thầy.');
       this.isSpeaking = false;
       if (onEnd) onEnd();
       return;
     }
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.voice = viVoice;
+    utterance.voice = maleViVoice;
     utterance.lang = 'vi-VN';
-    utterance.pitch = 0.9;
+    utterance.pitch = 0.85;
     utterance.rate = 0.95;
 
     utterance.onstart = () => {

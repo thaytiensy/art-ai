@@ -123,15 +123,20 @@ function handleTts(url, res) {
       });
       res.end(audioBuffer);
     } else {
-      fallbackToGoogle(cleanText, res);
+      console.error('Edge-TTS exited with code', code);
+      if (!res.headersSent) {
+        res.writeHead(500);
+        res.end('Edge-TTS error');
+      }
     }
   });
 
-  p.on('error', () => {
+  p.on('error', (err) => {
     cleanup();
-    if (!processClosed) {
+    if (!processClosed && !res.headersSent) {
       processClosed = true;
-      fallbackToGoogle(cleanText, res);
+      res.writeHead(500);
+      res.end('Spawn error: ' + err.message);
     }
   });
 
@@ -140,37 +145,15 @@ function handleTts(url, res) {
       processClosed = true;
       cleanup();
       try { p.kill(); } catch (e) {}
-      fallbackToGoogle(cleanText, res);
-    }
-  }, 12000);
-}
-
-function fallbackToGoogle(cleanText, res) {
-  const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(cleanText.slice(0, 200))}`;
-  https.get(googleUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-  }, (gRes) => {
-    const gChunks = [];
-    gRes.on('data', c => gChunks.push(c));
-    gRes.on('end', () => {
-      const gBuf = Buffer.concat(gChunks);
       if (!res.headersSent) {
-        res.writeHead(200, {
-          'Content-Type': 'audio/mpeg',
-          'Content-Length': gBuf.length,
-          'Cache-Control': 'public, max-age=86400'
-        });
-        res.end(gBuf);
+        res.writeHead(504);
+        res.end('Timeout');
       }
-    });
-  }).on('error', () => {
-    if (!res.headersSent) {
-      res.writeHead(500);
-      res.end('TTS failed');
     }
-  });
+  }, 15000);
 }
 
 server.listen(PORT, () => {
   console.log(`🎨 ART AI Production Server running on http://localhost:${PORT}`);
+});
 });

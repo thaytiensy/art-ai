@@ -286,7 +286,7 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, te
           </div>
 
           {/* Unit List */}
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5 max-h-[660px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-blue-300">
             <h3 className="font-black text-gray-700 text-sm px-1 flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-blue-600" />
               <span>Chủ Đề Kết Nối Tri Thức Lớp {selectedGrade}:</span>

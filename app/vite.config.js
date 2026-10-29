@@ -97,17 +97,21 @@ export default defineConfig({
                   res.end(audioBuffer);
                 }
               } else {
-                console.warn('Edge-TTS exited with code', code, '- Falling back to Google Vietnamese TTS');
-                fallbackToGoogle(cleanText, res, cacheKey);
+                console.error('Edge-TTS exited with error code', code);
+                if (!res.headersSent) {
+                  res.statusCode = 500;
+                  res.end('Edge-TTS failed');
+                }
               }
             });
 
             ttsProcess.on('error', (err) => {
-              console.warn('Edge-TTS spawn error:', err.message, '- Falling back to Google Vietnamese TTS');
+              console.error('Edge-TTS spawn error:', err.message);
               cleanupTemp();
-              if (!processClosed) {
+              if (!processClosed && !res.headersSent) {
                 processClosed = true;
-                fallbackToGoogle(cleanText, res, cacheKey);
+                res.statusCode = 500;
+                res.end(err.message);
               }
             });
 
@@ -118,20 +122,26 @@ export default defineConfig({
               }
             });
 
-            // Timeout safety: if edge-tts takes > 12s, fallback to Google TTS
+            // Timeout safety: if edge-tts takes > 15s
             setTimeout(() => {
               if (!processClosed && chunks.length === 0) {
                 processClosed = true;
                 cleanupTemp();
                 try { ttsProcess.kill(); } catch (e) {}
-                console.warn('Edge-TTS timeout, switching to Google Vietnamese TTS fallback');
-                fallbackToGoogle(cleanText, res, cacheKey);
+                console.warn('Edge-TTS timeout');
+                if (!res.headersSent) {
+                  res.statusCode = 504;
+                  res.end('TTS Gateway Timeout');
+                }
               }
-            }, 12000);
+            }, 15000);
 
           } catch (e) {
             console.error('TTS middleware error:', e);
-            fallbackToGoogle(text || '', res);
+            if (!res.headersSent) {
+              res.statusCode = 500;
+              res.end('TTS Error');
+            }
           }
         });
       }
@@ -143,49 +153,3 @@ export default defineConfig({
     host: true
   }
 });
-
-function fallbackToGoogle(cleanText, res, cacheKey) {
-  try {
-    const textSlice = cleanText.slice(0, 200);
-    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(textSlice)}`;
-    
-    https.get(googleUrl, { 
-      headers: { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' 
-      } 
-    }, (gRes) => {
-      const gChunks = [];
-      gRes.on('data', c => gChunks.push(c));
-      gRes.on('end', () => {
-        if (gChunks.length > 0) {
-          const gBuf = Buffer.concat(gChunks);
-          // Do NOT cache Google fallback to prevent poisoning cache with female voice!
-          if (!res.headersSent) {
-            res.writeHead(200, {
-              'Content-Type': 'audio/mpeg',
-              'Content-Length': gBuf.length,
-              'Cache-Control': 'public, max-age=86400'
-            });
-            res.end(gBuf);
-          }
-        } else {
-          if (!res.headersSent) {
-            res.statusCode = 500;
-            res.end('Empty TTS audio');
-          }
-        }
-      });
-    }).on('error', (err) => {
-      console.error('Google TTS fallback error:', err);
-      if (!res.headersSent) {
-        res.statusCode = 500;
-        res.end('TTS unavailable');
-      }
-    });
-  } catch (err) {
-    if (!res.headersSent) {
-      res.statusCode = 500;
-      res.end('TTS failed');
-    }
-  }
-}
