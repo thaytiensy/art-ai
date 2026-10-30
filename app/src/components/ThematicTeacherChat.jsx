@@ -416,34 +416,41 @@ export default function ThematicTeacherChat({
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><b>📐 Tích hợp Toán học (Hình học & Tỉ lệ)</b></td>
-              <td>${plan.integrations?.math || 'Nhận diện các hình phẳng, hình khối và ước lượng tỉ lệ cân đối.'}</td>
-            </tr>
-            <tr>
-              <td><b>🌿 Tích hợp Tự nhiên & Xã hội / Lịch sử - Địa lí</b></td>
-              <td>${plan.integrations?.society || 'Khám phá vẻ đẹp thiên nhiên, đời sống văn hóa và con người quê hương.'}</td>
-            </tr>
-            <tr>
-              <td><b>📖 Tích hợp Tiếng Việt / Văn học</b></td>
-              <td>${plan.integrations?.vietnamese || 'Mở rộng vốn từ ngữ thẩm mĩ, rèn kĩ năng biểu đạt và kể chuyện tranh.'}</td>
-            </tr>
-            <tr>
-              <td><b>🎵 Tích hợp Âm nhạc & Vận động</b></td>
-              <td>${plan.integrations?.music || 'Cảm nhận nhịp điệu của đường nét và sắc thái vui tươi qua âm hưởng nghệ thuật.'}</td>
-            </tr>
-            <tr>
-              <td><b>🌍 Tích hợp Môi trường & Địa phương</b></td>
-              <td>${plan.integrations?.environment || 'Ý thức giữ gìn vệ sinh lớp học, thu dọn rác, tái chế vật liệu, yêu quý danh lam địa phương.'}</td>
-            </tr>
-            <tr>
-              <td><b>🤝 Tích hợp Kĩ năng sống & Quyền con người (SEL)</b></td>
-              <td>${plan.integrations?.sel || 'Lắng nghe, hợp tác tích cực, tôn trọng phong cách sáng tạo riêng biệt của bạn bè.'}</td>
-            </tr>
-            <tr>
-              <td><b>💡 Tích hợp Giáo dục STEM / STEAM</b></td>
-              <td>${plan.integrations?.steam || 'Khám phá cấu trúc vật liệu, pha trộn hòa sắc quang học và ứng dụng sản phẩm thực tế.'}</td>
-            </tr>
+            ${Array.isArray(plan.integrations) ? plan.integrations.map(integ => `
+              <tr>
+                <td><b>${integ.badge || '🌐'} ${integ.name}</b></td>
+                <td>${integ.detail}</td>
+              </tr>
+            `).join('') : `
+              <tr>
+                <td><b>📐 Tích hợp Toán học (Hình học & Tỉ lệ)</b></td>
+                <td>${plan.integrations?.math || 'Nhận diện các hình phẳng, hình khối và ước lượng tỉ lệ cân đối.'}</td>
+              </tr>
+              <tr>
+                <td><b>🌿 Tích hợp Tự nhiên & Xã hội / Lịch sử - Địa lí</b></td>
+                <td>${plan.integrations?.society || 'Khám phá vẻ đẹp thiên nhiên, đời sống văn hóa và con người quê hương.'}</td>
+              </tr>
+              <tr>
+                <td><b>📖 Tích hợp Tiếng Việt / Văn học</b></td>
+                <td>${plan.integrations?.vietnamese || 'Mở rộng vốn từ ngữ thẩm mĩ, rèn kĩ năng biểu đạt và kể chuyện tranh.'}</td>
+              </tr>
+              <tr>
+                <td><b>🎵 Tích hợp Âm nhạc & Vận động</b></td>
+                <td>${plan.integrations?.music || 'Cảm nhận nhịp điệu của đường nét và sắc thái vui tươi qua âm hưởng nghệ thuật.'}</td>
+              </tr>
+              <tr>
+                <td><b>🌍 Tích hợp Môi trường & Địa phương</b></td>
+                <td>${plan.integrations?.environment || 'Ý thức giữ gìn vệ sinh lớp học, thu dọn rác, tái chế vật liệu, yêu quý danh lam địa phương.'}</td>
+              </tr>
+              <tr>
+                <td><b>🤝 Tích hợp Kĩ năng sống & Quyền con người (SEL)</b></td>
+                <td>${plan.integrations?.sel || 'Lắng nghe, hợp tác tích cực, tôn trọng phong cách sáng tạo riêng biệt của bạn bè.'}</td>
+              </tr>
+              <tr>
+                <td><b>💡 Tích hợp Giáo dục STEM / STEAM</b></td>
+                <td>${plan.integrations?.steam || 'Khám phá cấu trúc vật liệu, pha trộn hòa sắc quang học và ứng dụng sản phẩm thực tế.'}</td>
+              </tr>
+            `}
           </tbody>
         </table>
 
@@ -1037,13 +1044,31 @@ export default function ThematicTeacherChat({
                           )}
 
                           {currentSlide.interactiveAction.type === 'apply' && (
-                            <div>
-                              <span className="text-xs font-black text-indigo-900 block">
-                                🚀 Thử Thách Vận Dụng Đời Sống:
-                              </span>
-                              <p className="text-xs font-bold text-gray-700 mt-0.5">
-                                Mang bức tranh của con về trang trí góc học tập hoặc làm món quà tặng người thân thân yêu nhé!
-                              </p>
+                            <div className="flex flex-col gap-2">
+                              <div>
+                                <span className="text-xs font-black text-indigo-900 block">
+                                  🚀 Thử Thách Vận Dụng Đời Sống:
+                                </span>
+                                <p className="text-xs font-bold text-gray-700 mt-0.5">
+                                  Mang bức tranh của con về trang trí góc học tập hoặc làm món quà tặng người thân thân yêu nhé!
+                                </p>
+                              </div>
+                              {(currentSlide.integrations || selectedUnit.integrations) && (
+                                <div className="mt-2 pt-2 border-t border-indigo-200 flex flex-col gap-1.5">
+                                  <span className="text-[11px] font-black text-indigo-900 uppercase flex items-center gap-1">
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                    <span>Tích Hợp Liên Môn Phù Hợp Bài Học (GDPT 2018):</span>
+                                  </span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                    {(currentSlide.integrations || selectedUnit.integrations).map((integ, idx) => (
+                                      <div key={idx} className="bg-white/95 p-2 rounded-xl border border-indigo-200 shadow-xs text-[11px] leading-tight">
+                                        <b className="text-indigo-950 block">{integ.badge} {integ.name}</b>
+                                        <span className="text-gray-600 line-clamp-2">{integ.detail}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1346,38 +1371,67 @@ export default function ThematicTeacherChat({
                 <div>
                   <h5 className="font-black text-blue-900 text-sm mb-2 uppercase flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>IV. Nội Dung Tích Hợp Liên Môn & Giáo Dục Toàn Diện (GDPT 2018):</span>
+                    <span>IV. Nội Dung Tích Hợp Liên Môn & Giáo Dục Toàn Diện Phù Hợp Chủ Đề (GDPT 2018):</span>
                   </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-amber-50/70 p-3 rounded-2xl border border-amber-200">
-                      <span className="font-black text-amber-900 block mb-0.5">📐 1. Tích Hợp Toán Học (Hình Học & Tỉ Lệ):</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.math}</p>
+                  {Array.isArray(selectedUnit.wordLessonPlan.integrations) ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                      {selectedUnit.wordLessonPlan.integrations.map((integ, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`p-3.5 rounded-2xl border-2 shadow-sm flex flex-col gap-1 transition ${
+                            idx % 3 === 0 
+                              ? 'bg-amber-50/70 border-amber-200' 
+                              : idx % 3 === 1 
+                                ? 'bg-emerald-50/70 border-emerald-200' 
+                                : 'bg-blue-50/70 border-blue-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-gray-900 text-sm">
+                              {integ.badge || '🌐 Tích hợp'}
+                            </span>
+                            <span className="font-bold text-gray-800 text-xs">
+                              {integ.name}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 font-medium leading-relaxed mt-1">
+                            {integ.detail}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                    <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200">
-                      <span className="font-black text-emerald-900 block mb-0.5">🌿 2. Tự Nhiên - Xã Hội & Lịch Sử - Địa Lí:</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.society}</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-amber-50/70 p-3 rounded-2xl border border-amber-200">
+                        <span className="font-black text-amber-900 block mb-0.5">📐 1. Tích Hợp Toán Học (Hình Học & Tỉ Lệ):</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.math}</p>
+                      </div>
+                      <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200">
+                        <span className="font-black text-emerald-900 block mb-0.5">🌿 2. Tự Nhiên - Xã Hội & Lịch Sử - Địa Lí:</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.society}</p>
+                      </div>
+                      <div className="bg-blue-50/70 p-3 rounded-2xl border border-blue-200">
+                        <span className="font-black text-blue-900 block mb-0.5">📖 3. Tích Hợp Tiếng Việt / Văn Học:</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.vietnamese}</p>
+                      </div>
+                      <div className="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
+                        <span className="font-black text-pink-900 block mb-0.5">🎵 4. Tích Hợp Âm Nhạc & Vận Động:</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.music}</p>
+                      </div>
+                      <div className="bg-teal-50/70 p-3 rounded-2xl border border-teal-200">
+                        <span className="font-black text-teal-900 block mb-0.5">🌍 5. Bảo Vệ Môi Trường & Địa Phương:</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.environment}</p>
+                      </div>
+                      <div className="bg-rose-50/70 p-3 rounded-2xl border border-rose-200">
+                        <span className="font-black text-rose-900 block mb-0.5">🤝 6. Kĩ Năng Sống & Quyền Trẻ Em (SEL):</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.sel}</p>
+                      </div>
+                      <div className="md:col-span-2 bg-indigo-50/70 p-3 rounded-2xl border border-indigo-200">
+                        <span className="font-black text-indigo-900 block mb-0.5">💡 7. Giáo Dục STEM / STEAM (Khoa Học Ứng Dụng):</span>
+                        <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.steam}</p>
+                      </div>
                     </div>
-                    <div className="bg-blue-50/70 p-3 rounded-2xl border border-blue-200">
-                      <span className="font-black text-blue-900 block mb-0.5">📖 3. Tích Hợp Tiếng Việt / Văn Học:</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.vietnamese}</p>
-                    </div>
-                    <div className="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
-                      <span className="font-black text-pink-900 block mb-0.5">🎵 4. Tích Hợp Âm Nhạc & Vận Động:</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.music}</p>
-                    </div>
-                    <div className="bg-teal-50/70 p-3 rounded-2xl border border-teal-200">
-                      <span className="font-black text-teal-900 block mb-0.5">🌍 5. Bảo Vệ Môi Trường & Địa Phương:</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.environment}</p>
-                    </div>
-                    <div className="bg-rose-50/70 p-3 rounded-2xl border border-rose-200">
-                      <span className="font-black text-rose-900 block mb-0.5">🤝 6. Kĩ Năng Sống & Quyền Trẻ Em (SEL):</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.sel}</p>
-                    </div>
-                    <div className="md:col-span-2 bg-indigo-50/70 p-3 rounded-2xl border border-indigo-200">
-                      <span className="font-black text-indigo-900 block mb-0.5">💡 7. Giáo Dục STEM / STEAM (Khoa Học Ứng Dụng):</span>
-                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.steam}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Section V: Chữ ký hành chính */}
