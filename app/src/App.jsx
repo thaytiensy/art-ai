@@ -189,6 +189,7 @@ export default function App() {
             apiKey={apiKey}
             teacher={teacher}
             onStartDrawingOnCanvas={handleSelectToDraw}
+            onGoToCritique={() => setActiveTab('critique')}
           />
         )}
 

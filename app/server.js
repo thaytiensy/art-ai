@@ -90,7 +90,47 @@ function handleTts(url, res) {
     return;
   }
 
-  // Try Edge-TTS via UTF-8 temp file if uvx is available
+  // Ưu tiên 1: Pure Node.js WebSocket Edge-TTS
+  try {
+    const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+    const tts = new MsEdgeTTS();
+    await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    const { audioStream } = tts.toStream(cleanText);
+
+    res.writeHead(200, {
+      'Content-Type': 'audio/mpeg',
+      'Transfer-Encoding': 'chunked',
+      'Accept-Ranges': 'bytes',
+      'Cache-Control': 'public, max-age=86400'
+    });
+
+    const chunks = [];
+    audioStream.on('data', (c) => {
+      chunks.push(c);
+      if (!res.writableEnded) res.write(c);
+    });
+
+    audioStream.on('end', () => {
+      if (chunks.length > 0) {
+        ttsCache.set(cleanText, Buffer.concat(chunks));
+      }
+      if (!res.writableEnded) res.end();
+    });
+
+    audioStream.on('error', (err) => {
+      console.error('MsEdgeTTS server stream error:', err);
+      if (!res.writableEnded) res.end();
+    });
+
+    req.on('close', () => {
+      try { tts.close(); } catch (e) {}
+    });
+    return;
+  } catch (wsErr) {
+    console.warn('MsEdgeTTS failed, falling back to standalone edge-tts.exe:', wsErr.message);
+  }
+
+  // Ưu tiên 2: Standalone edge-tts.exe
   const tempFile = path.join(os.tmpdir(), `tts_${Date.now()}_${Math.random().toString(36).slice(2)}.txt`);
   fs.writeFileSync(tempFile, cleanText, 'utf8');
 

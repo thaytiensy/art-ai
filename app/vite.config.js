@@ -15,7 +15,7 @@ export default defineConfig({
     {
       name: 'edge-tts-server',
       configureServer(server) {
-        server.middlewares.use('/api/tts', (req, res) => {
+        server.middlewares.use('/api/tts', async (req, res) => {
           try {
             const url = new URL(req.url, 'http://localhost');
             const text = url.searchParams.get('text');
@@ -50,7 +50,47 @@ export default defineConfig({
               return;
             }
 
-            // Ghi nội dung tiếng Việt vào file UTF-8 tạm thời để tránh lỗi Windows ANSI argument mangling
+            // Ưu tiên 1: Pure Node.js WebSocket Edge-TTS (độ trễ siêu thấp ~600ms, không phụ thuộc file tạm)
+            try {
+              const { MsEdgeTTS, OUTPUT_FORMAT } = await import('msedge-tts');
+              const tts = new MsEdgeTTS();
+              await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+              const { audioStream } = tts.toStream(cleanText);
+
+              res.writeHead(200, {
+                'Content-Type': 'audio/mpeg',
+                'Transfer-Encoding': 'chunked',
+                'Accept-Ranges': 'bytes',
+                'Cache-Control': 'public, max-age=86400'
+              });
+
+              const chunks = [];
+              audioStream.on('data', (c) => {
+                chunks.push(c);
+                if (!res.writableEnded) res.write(c);
+              });
+
+              audioStream.on('end', () => {
+                if (chunks.length > 0) {
+                  ttsCache.set(cacheKey, Buffer.concat(chunks));
+                }
+                if (!res.writableEnded) res.end();
+              });
+
+              audioStream.on('error', (err) => {
+                console.error('MsEdgeTTS stream error:', err);
+                if (!res.writableEnded) res.end();
+              });
+
+              req.on('close', () => {
+                try { tts.close(); } catch (e) {}
+              });
+              return;
+            } catch (wsErr) {
+              console.warn('MsEdgeTTS WebSocket failed, fallback to standalone edge-tts.exe:', wsErr.message);
+            }
+
+            // Ưu tiên 2: Standalone edge-tts.exe dự phòng
             const tempFile = path.join(os.tmpdir(), `tts_${Date.now()}_${Math.random().toString(36).slice(2)}.txt`);
             fs.writeFileSync(tempFile, cleanText, 'utf8');
 
@@ -63,7 +103,6 @@ export default defineConfig({
               } catch (e) {}
             };
 
-            // Ưu tiên chạy edge-tts.exe trực tiếp để giảm độ trễ (không qua uvx wrapper)
             const localEdgeExe = path.join(os.homedir(), '.local', 'bin', 'edge-tts.exe');
             const useDirectExe = fs.existsSync(localEdgeExe);
             const exeCmd = useDirectExe ? localEdgeExe : 'uvx';
@@ -71,7 +110,6 @@ export default defineConfig({
               ? ['--voice', voice, '--file', tempFile, '--write-media', '-']
               : ['edge-tts', '--voice', voice, '--file', tempFile, '--write-media', '-'];
 
-            // Gửi header sớm để trình duyệt có thể stream âm thanh ngay lập tức
             res.writeHead(200, {
               'Content-Type': 'audio/mpeg',
               'Transfer-Encoding': 'chunked',
@@ -79,7 +117,6 @@ export default defineConfig({
               'Cache-Control': 'public, max-age=86400'
             });
 
-            // Spawn Edge-TTS process
             const ttsProcess = spawn(exeCmd, exeArgs, { windowsHide: true });
 
             ttsProcess.stdout.on('data', (chunk) => {
