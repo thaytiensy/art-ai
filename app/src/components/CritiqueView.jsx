@@ -5,10 +5,44 @@ import {
   Volume2, 
   VolumeX, 
   Award, 
-  Camera
+  Camera,
+  CheckCircle2,
+  Image as ImageIcon
 } from 'lucide-react';
 import { analyzeKidsArtwork } from '../services/gemini';
 import { ttsService } from '../services/tts';
+
+// 4 Tranh Mẫu Học Sinh Tiêu Biểu Để Thử Ngay (Instant 1-Click Testing)
+const SAMPLE_ARTWORKS = [
+  {
+    id: 'sample_cat',
+    title: 'Chú Mèo Con Vui Đùa',
+    gradeTag: 'Lớp 1 • Chấm nét sáp',
+    promptContext: 'Con vẽ chú mèo con lông màu cam đang cuộn tròn chơi trong vườn hoa dưới nắng',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400"><rect width="500" height="400" fill="%23fef3c7"/><circle cx="430" cy="70" r="45" fill="%23f59e0b" opacity="0.8"/><path d="M 0,330 Q 150,300 300,340 T 500,320 L 500,400 L 0,400 Z" fill="%2386efac"/><ellipse cx="250" cy="270" rx="90" ry="70" fill="%23fb923c"/><circle cx="250" cy="170" r="55" fill="%23fb923c"/><polygon points="210,135 190,80 230,120" fill="%23ea580c"/><polygon points="290,135 310,80 270,120" fill="%23ea580c"/><ellipse cx="230" cy="165" rx="8" ry="12" fill="%231e293b"/><ellipse cx="270" cy="165" rx="8" ry="12" fill="%231e293b"/><circle cx="232" cy="162" r="3" fill="%23ffffff"/><circle cx="272" cy="162" r="3" fill="%23ffffff"/><polygon points="250,180 244,188 256,188" fill="%23fda4af"/><path d="M 244,192 Q 250,198 256,192" stroke="%231e293b" stroke-width="2" fill="none"/><line x1="210" y1="180" x2="160" y2="175" stroke="%23475569" stroke-width="2"/><line x1="210" y1="188" x2="160" y2="192" stroke="%23475569" stroke-width="2"/><line x1="290" y1="180" x2="340" y2="175" stroke="%23475569" stroke-width="2"/><line x1="290" y1="188" x2="340" y2="192" stroke="%23475569" stroke-width="2"/><path d="M 330,280 Q 390,260 380,210" stroke="%23ea580c" stroke-width="18" stroke-linecap="round" fill="none"/><circle cx="80" cy="330" r="10" fill="%23f43f5e"/><circle cx="120" cy="350" r="8" fill="%23a855f7"/><circle cx="420" cy="340" r="12" fill="%233b82f6"/></svg>'
+  },
+  {
+    id: 'sample_house',
+    title: 'Ngôi Nhà Mơ Ước',
+    gradeTag: 'Lớp 2 • Hình khối cơ bản',
+    promptContext: 'Con vẽ ngôi nhà mái ngói đỏ bên cạnh cái cây xanh tươi và mặt trời ấm áp',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400"><rect width="500" height="400" fill="%23e0f2fe"/><circle cx="80" cy="70" r="40" fill="%23facc15"/><path d="M 0,280 L 500,280 L 500,400 L 0,400 Z" fill="%234ade80"/><rect x="160" y="190" width="180" height="130" fill="%23fde047" stroke="%23ca8a04" stroke-width="4"/><polygon points="140,190 250,90 360,190" fill="%23ef4444" stroke="%23b91c1c" stroke-width="4"/><rect x="225" y="240" width="50" height="80" fill="%23b45309"/><circle cx="265" cy="280" r="4" fill="%23fef08a"/><rect x="175" y="210" width="35" height="35" fill="%2338bdf8" stroke="%230284c7" stroke-width="3"/><rect x="290" y="210" width="35" height="35" fill="%2338bdf8" stroke="%230284c7" stroke-width="3"/><rect x="390" y="220" width="25" height="90" fill="%2378350f"/><circle cx="402" cy="180" r="50" fill="%2315803d"/></svg>'
+  },
+  {
+    id: 'sample_flowers',
+    title: 'Vườn Hoa Rực Rỡ',
+    gradeTag: 'Lớp 3 • Hòa sắc ấm lạnh',
+    promptContext: 'Con vẽ cánh đồng hoa rực rỡ sắc màu có đàn bướm bay lượn tung tăng',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400"><rect width="500" height="400" fill="%23ecfdf5"/><circle cx="400" cy="80" r="35" fill="%23f59e0b"/><path d="M 0,260 Q 250,220 500,260 L 500,400 L 0,400 Z" fill="%2322c55e"/><circle cx="100" cy="290" r="22" fill="%23ef4444"/><circle cx="100" cy="290" r="10" fill="%23fef08a"/><path d="M 100,312 L 100,370" stroke="%2315803d" stroke-width="5"/><circle cx="250" cy="280" r="28" fill="%23ec4899"/><circle cx="250" cy="280" r="12" fill="%23fef08a"/><path d="M 250,308 L 250,380" stroke="%2315803d" stroke-width="6"/><circle cx="380" cy="300" r="20" fill="%238b5cf6"/><circle cx="380" cy="300" r="9" fill="%23fef08a"/><path d="M 380,320 L 380,370" stroke="%2315803d" stroke-width="5"/><ellipse cx="180" cy="140" rx="15" ry="10" fill="%23fbbf24"/><ellipse cx="195" cy="135" rx="8" ry="12" fill="%23fb923c"/><ellipse cx="165" cy="135" rx="8" ry="12" fill="%23fb923c"/></svg>'
+  },
+  {
+    id: 'sample_boat',
+    title: 'Thuyền Buồm Ra Khơi',
+    gradeTag: 'Lớp 4 • Bố cục không gian',
+    promptContext: 'Con vẽ chiếc thuyền buồm đang lướt sóng ra khơi ngắm hoàng hôn đỏ thắm',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400"><rect width="500" height="400" fill="%23fed7aa"/><circle cx="250" cy="220" r="70" fill="%23f97316" opacity="0.9"/><path d="M 0,250 Q 125,240 250,250 T 500,250 L 500,400 L 0,400 Z" fill="%230284c7"/><path d="M 0,290 Q 125,280 250,290 T 500,290 L 500,400 L 0,400 Z" fill="%230369a1"/><path d="M 180,240 L 320,240 L 290,280 L 210,280 Z" fill="%23b45309" stroke="%2378350f" stroke-width="3"/><line x1="250" y1="130" x2="250" y2="240" stroke="%2378350f" stroke-width="4"/><polygon points="250,140 310,210 250,210" fill="%23ffffff"/><polygon points="246,150 190,215 246,215" fill="%23f87171"/></svg>'
+  }
+];
 
 export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, teacher }) {
   const [image, setImage] = useState(initialImage || null);
@@ -27,7 +61,7 @@ export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, tea
     }
   }, [initialImage]);
 
-  const handleAnalyze = async (imgToAnalyze = image) => {
+  const handleAnalyze = async (imgToAnalyze = image, contextToUse = promptContext) => {
     if (!imgToAnalyze) return;
 
     setAnalyzing(true);
@@ -36,7 +70,7 @@ export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, tea
     setIsSpeaking(false);
 
     try {
-      const result = await analyzeKidsArtwork(imgToAnalyze, apiKey, promptContext, teacher);
+      const result = await analyzeKidsArtwork(imgToAnalyze, apiKey, contextToUse, teacher);
       setFeedback(result);
 
       // Confetti celebration
@@ -196,6 +230,47 @@ export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, tea
                 >
                   {analyzing ? 'Đang ngắm...' : 'Nhận xét lại'}
                 </button>
+              </div>
+            </div>
+
+            {/* Quick 1-Click Sample Student Paintings to Test Immediately */}
+            <div className="mt-4 pt-4 border-t border-pink-100 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-pink-700 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Tranh mẫu học sinh để {pronoun} chấm thử ngay:</span>
+                </span>
+                <span className="text-[10px] font-bold text-gray-400">1-click test</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {SAMPLE_ARTWORKS.map((sample) => (
+                  <button
+                    key={sample.id}
+                    onClick={() => {
+                      setImage(sample.dataUrl);
+                      setPromptContext(sample.promptContext);
+                      handleAnalyze(sample.dataUrl, sample.promptContext);
+                    }}
+                    className="flex items-center gap-2.5 p-2 rounded-2xl border-2 border-pink-100 hover:border-pink-400 bg-pink-50/40 hover:bg-pink-100/60 transition group text-left"
+                    title={`Chấm bức tranh: ${sample.title}`}
+                  >
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 shadow-xs border border-pink-200">
+                      <img
+                        src={sample.dataUrl}
+                        alt={sample.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs font-black text-gray-800 block truncate group-hover:text-pink-600 transition">
+                        {sample.title}
+                      </span>
+                      <span className="text-[10px] font-bold text-pink-600 block truncate">
+                        {sample.gradeTag}
+                      </span>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

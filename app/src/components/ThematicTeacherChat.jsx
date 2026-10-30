@@ -57,6 +57,7 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
   const chatBottomRef = useRef(null);
   const slideContainerRef = useRef(null);
   const penCanvasRef = useRef(null);
+  const topicRibbonRef = useRef(null);
 
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
@@ -396,118 +397,150 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Grade Selector & Unit List */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          {/* Grade Tabs (Lớp 1 -> Lớp 5) */}
-          <div className="bg-white p-2 sm:p-3 rounded-3xl shadow-sm border-2 border-blue-100 flex items-center justify-between gap-1">
-            {[1, 2, 3, 4, 5].map((g) => (
-              <button
-                key={g}
-                onClick={() => handleSelectGrade(g)}
-                className={`flex-1 py-2 rounded-2xl font-black text-xs sm:text-sm transition-all ${
-                  selectedGrade === g
-                    ? 'bg-blue-600 text-white shadow-md scale-105'
-                    : 'text-gray-500 hover:bg-blue-50 hover:text-blue-600'
-                }`}
-              >
-                Lớp {g}
-              </button>
-            ))}
+      {/* 1. TOP CONTROL BAR: Grade Selector + Teaching Mode Switcher */}
+      <div className="bg-white p-3 rounded-3xl shadow-md border-2 border-blue-100 flex items-center justify-between flex-wrap gap-3">
+        {/* Grade Tabs (Lớp 1 -> Lớp 5) */}
+        <div className="flex items-center gap-1.5 bg-blue-50/80 p-1.5 rounded-2xl border border-blue-200">
+          <span className="text-xs font-black text-blue-900 px-2 hidden sm:inline">Khối Lớp:</span>
+          {[1, 2, 3, 4, 5].map((g) => (
+            <button
+              key={g}
+              onClick={() => handleSelectGrade(g)}
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-black text-xs sm:text-sm transition-all ${
+                selectedGrade === g
+                  ? 'bg-blue-600 text-white shadow-md scale-105'
+                  : 'text-gray-600 hover:bg-white hover:text-blue-600'
+              }`}
+            >
+              Lớp {g}
+            </button>
+          ))}
+        </div>
+
+        {/* Mode Switcher Tabs */}
+        <div className="flex items-center gap-1.5 bg-gray-100/80 p-1.5 rounded-2xl border border-gray-200 flex-wrap">
+          <button
+            onClick={() => setViewMode('powerpoint')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition ${
+              viewMode === 'powerpoint'
+                ? 'bg-orange-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-white hover:text-orange-600'
+            }`}
+          >
+            <Presentation className="w-4 h-4" />
+            <span>📽️ Trình Chiếu PowerPoint</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('word')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition ${
+              viewMode === 'word'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-white hover:text-blue-600'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>📄 Giáo Án Word (CV 2345)</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('chat')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition ${
+              viewMode === 'chat'
+                ? 'bg-rose-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-white hover:text-rose-600'
+            }`}
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>💬 Hỏi Thầy Bài Này</span>
+          </button>
+        </div>
+
+        {/* Action Button */}
+        <button
+          onClick={onStartDrawingOnCanvas}
+          className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-pink-500 to-amber-500 text-white text-xs font-black rounded-xl shadow hover:scale-105 active:scale-95 transition"
+        >
+          <Palette className="w-4 h-4" />
+          <span>Vào Bảng Vẽ Thực Hành</span>
+        </button>
+      </div>
+
+      {/* 2. HORIZONTAL TOPIC CAROUSEL RIBBON: All units for current grade */}
+      <div className="bg-gradient-to-r from-amber-50 via-white to-blue-50 p-3 rounded-3xl border-2 border-amber-200 shadow-sm flex flex-col gap-2">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black text-amber-900 flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-amber-600" />
+              <span>Chủ Đề Kết Nối Tri Thức Lớp {selectedGrade}:</span>
+            </span>
+            <span className="text-xs font-bold text-gray-500">
+              ({gradeUnits.length} bài học chuẩn GDPT 2018)
+            </span>
           </div>
 
-          {/* Unit List */}
-          <div className="flex flex-col gap-2.5 max-h-[660px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-blue-300">
-            <h3 className="font-black text-gray-700 text-sm px-1 flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-blue-600" />
-              <span>Chủ Đề Kết Nối Tri Thức Lớp {selectedGrade}:</span>
-            </h3>
-
-            {gradeUnits.map((unit) => {
-              const isSelected = selectedUnit.id === unit.id;
-              return (
-                <button
-                  key={unit.id}
-                  onClick={() => handleSelectUnit(unit)}
-                  className={`w-full p-4 rounded-3xl border-2 text-left flex items-start gap-3 transition-all ${
-                    isSelected
-                      ? 'bg-white border-blue-500 shadow-lg scale-102 ring-2 ring-blue-300'
-                      : 'bg-white/80 border-gray-100 hover:bg-white hover:border-blue-200'
-                  }`}
-                >
-                  <span className="text-3xl p-2.5 bg-blue-50 rounded-2xl shrink-0 mt-0.5">
-                    {unit.icon}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[11px] font-black text-amber-600 uppercase">
-                        {unit.unitNumber} • {unit.duration}
-                      </span>
-                    </div>
-                    <h4 className="font-extrabold text-gray-800 text-sm mt-0.5">
-                      {unit.title}
-                    </h4>
-                    <span className="inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                      {unit.tag}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                if (topicRibbonRef.current) {
+                  topicRibbonRef.current.scrollBy({ left: -220, behavior: 'smooth' });
+                }
+              }}
+              className="p-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-800 border border-amber-200 shadow-sm transition"
+              title="Cuộn sang trái"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => {
+                if (topicRibbonRef.current) {
+                  topicRibbonRef.current.scrollBy({ left: 220, behavior: 'smooth' });
+                }
+              }}
+              className="p-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-800 border border-amber-200 shadow-sm transition"
+              title="Cuộn sang phải"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* Right Column: Teaching Modes (PowerPoint vs Word vs Chat) */}
-        <div className="lg:col-span-8 flex flex-col gap-4">
-          {/* Mode Switcher Tabs */}
-          <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-1.5">
+        {/* Scrollable unit chips */}
+        <div
+          ref={topicRibbonRef}
+          className="flex items-center gap-2.5 overflow-x-auto py-1 px-0.5 scrollbar-thin scrollbar-thumb-amber-300"
+        >
+          {gradeUnits.map((unit) => {
+            const isSelected = selectedUnit.id === unit.id;
+            return (
               <button
-                onClick={() => setViewMode('powerpoint')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition ${
-                  viewMode === 'powerpoint'
-                    ? 'bg-orange-500 text-white shadow'
-                    : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'
+                key={unit.id}
+                onClick={() => handleSelectUnit(unit)}
+                className={`shrink-0 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl border-2 text-left transition-all ${
+                  isSelected
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg scale-102 ring-2 ring-blue-300'
+                    : 'bg-white text-gray-800 border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
                 }`}
               >
-                <Presentation className="w-4 h-4" />
-                <span>📽️ Trình Chiếu PowerPoint</span>
+                <span className="text-2xl p-1 bg-white/20 rounded-xl shrink-0">
+                  {unit.icon}
+                </span>
+                <div className="min-w-0 max-w-[200px]">
+                  <span className={`text-[10px] font-black uppercase block truncate ${isSelected ? 'text-amber-200' : 'text-amber-600'}`}>
+                    {unit.unitNumber} • {unit.duration}
+                  </span>
+                  <p className="text-xs font-black truncate leading-tight">
+                    {unit.title}
+                  </p>
+                </div>
               </button>
+            );
+          })}
+        </div>
+      </div>
 
-              <button
-                onClick={() => setViewMode('word')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition ${
-                  viewMode === 'word'
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                <span>📄 Giáo Án Word (CV 2345)</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('chat')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition ${
-                  viewMode === 'chat'
-                    ? 'bg-rose-500 text-white shadow'
-                    : 'text-gray-600 hover:bg-rose-50 hover:text-rose-600'
-                }`}
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>💬 Hỏi Thầy Bài Này</span>
-              </button>
-            </div>
-
-            {/* Quick Action */}
-            <button
-              onClick={onStartDrawingOnCanvas}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-pink-500 to-amber-500 text-white text-xs font-black rounded-xl shadow hover:scale-105 transition"
-            >
-              <Palette className="w-4 h-4" />
-              <span>Vào Bảng Vẽ Thực Hành</span>
-            </button>
-          </div>
+      {/* 3. MAIN TEACHING AREA: Full-Width PowerPoint / Word / Chat */}
+      <div className="w-full flex flex-col gap-4">
 
           {/* VIEW 1: POWERPOINT SLIDE DECK (INTERACTIVE PRESENTATION) */}
           {viewMode === 'powerpoint' && currentSlide && (
@@ -1043,7 +1076,51 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
             </div>
           )}
         </div>
+
+        {/* 4. BOTTOM OVERVIEW SECTION: Grid of all units of current grade */}
+        <div className="bg-white p-5 rounded-3xl border-2 border-gray-100 shadow-sm mt-2">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h4 className="font-black text-gray-800 text-sm sm:text-base flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              <span>Chương Trình Mĩ Thuật Lớp {selectedGrade} ({gradeUnits.length} Bài Học - SGK Kết Nối Tri Thức)</span>
+            </h4>
+            <span className="text-xs font-bold text-gray-500">Bấm bài bất kỳ để trình chiếu ngay</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {gradeUnits.map((unit) => {
+              const isSelected = selectedUnit.id === unit.id;
+              return (
+                <button
+                  key={unit.id}
+                  onClick={() => handleSelectUnit(unit)}
+                  className={`p-3 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
+                    isSelected
+                      ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-300'
+                      : 'bg-gray-50/70 border-gray-100 hover:bg-white hover:border-blue-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 w-full">
+                    <span className="text-2xl p-1.5 bg-white rounded-xl shadow-xs">
+                      {unit.icon}
+                    </span>
+                    <span className="text-[10px] font-black text-amber-600 uppercase">
+                      {unit.unitNumber}
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <h5 className="font-extrabold text-gray-800 text-xs line-clamp-2">
+                      {unit.title}
+                    </h5>
+                    <span className="inline-block mt-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+                      {unit.tag}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
