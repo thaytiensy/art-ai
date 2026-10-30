@@ -53,7 +53,8 @@ export default function App() {
     setActiveTab('critique');
   };
 
-  const handleSelectToDraw = () => {
+  const handleSelectToDraw = (template = null) => {
+    if (template) setCanvasTemplate(template);
     setActiveTab('canvas');
   };
 

@@ -304,7 +304,7 @@ export default function ThematicTeacherChat({
     }
   };
 
-  // Download Word Lesson Plan
+  // Download Word Lesson Plan (Chuẩn Công văn 2345/BGDĐT-GDTH với bảng 4 cột & Tích hợp đầy đủ)
   const downloadWordPlan = () => {
     const plan = selectedUnit.wordLessonPlan;
     if (!plan) return;
@@ -313,49 +313,158 @@ export default function ThematicTeacherChat({
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><title>${plan.title}</title>
       <style>
-        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.5; margin: 30px; }
-        h1 { font-size: 16pt; font-weight: bold; text-align: center; color: #b91c1c; }
-        h2 { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 20px; }
-        h3 { font-size: 13pt; font-weight: bold; color: #1e3a8a; margin-top: 15px; }
-        p, li { font-size: 13pt; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-        th { background-color: #f3f4f6; }
+        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.5; margin: 30px; color: #111; }
+        h1 { font-size: 16pt; font-weight: bold; text-align: center; color: #b91c1c; margin-top: 10px; text-transform: uppercase; }
+        h2 { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 18px; color: #1e3a8a; text-transform: uppercase; }
+        h3 { font-size: 13pt; font-weight: bold; color: #1e3a8a; margin-top: 18px; border-bottom: 2px solid #1e3a8a; padding-bottom: 3px; }
+        p, li { font-size: 13pt; margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; margin-bottom: 15px; }
+        th, td { border: 1px solid #111; padding: 8px; text-align: left; vertical-align: top; font-size: 12pt; }
+        th { background-color: #f3f4f6; font-weight: bold; text-align: center; }
+        .meta-table { width: 100%; border: none; margin-bottom: 15px; }
+        .meta-table td { border: none; padding: 2px; }
+        .q-box { background: #fffbeb; padding: 6px 8px; border-left: 3px solid #f59e0b; margin: 6px 0; font-size: 11.5pt; }
+        .a-box { background: #f0fdf4; padding: 6px 8px; border-left: 3px solid #22c55e; margin: 6px 0; font-size: 11.5pt; }
       </style>
       </head>
       <body>
-        <p style='text-align: center;'><b>BỘ GIÁO DỤC VÀ ĐÀO TẠO • TRƯỜNG TIỂU HỌC</b><br>TỔ CHUYÊN MÔN KHỐI ${selectedGrade}</p>
-        <hr/>
+        <table class="meta-table">
+          <tr>
+            <td style="width: 50%; text-align: center;">
+              <b>TRƯỜNG TIỂU HỌC: .......................................</b><br/>
+              <b>TỔ CHUYÊN MÔN KHỐI ${selectedGrade}</b>
+            </td>
+            <td style="width: 50%; text-align: center;">
+              <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br/>
+              <i>Độc lập - Tự do - Hạnh phúc</i><br/>
+              -------------------
+            </td>
+          </tr>
+        </table>
+        
         <h1>${plan.title}</h1>
         <h2>${plan.unit}</h2>
         <p><b>Bộ sách:</b> ${plan.book}</p>
+        <p><b>Môn học:</b> Mĩ thuật • <b>Lớp:</b> ${selectedGrade} • <b>Thời lượng:</b> ${selectedUnit.duration}</p>
         <p><b>Giáo viên giảng dạy:</b> ${teacherName}</p>
-        <p><b>Thời lượng:</b> ${selectedUnit.duration}</p>
         
-        <h3>I. YÊU CẦU CẦN ĐẠT</h3>
+        <h3>I. YÊU CẦU CẦN ĐẠT (MỤC TIÊU BÀI HỌC)</h3>
         <ul>
           ${plan.objectives.map(o => `<li>${o}</li>`).join('')}
         </ul>
 
-        <h3>II. ĐỒ DÙNG DẠY HỌC</h3>
+        <h3>II. ĐỒ DÙNG DẠY HỌC & HỌC LIỆU TRỰC QUAN</h3>
         <p><b>1. Giáo viên:</b> ${plan.preparations.teacher}</p>
         <p><b>2. Học sinh:</b> ${plan.preparations.students}</p>
+        ${plan.visualArt?.title ? `<p><b>3. Tác phẩm mẫu minh họa trực quan SGK:</b> ${plan.visualArt.title} (${plan.visualArt.caption})</p>` : ''}
 
-        <h3>III. CÁC HOẠT ĐỘNG DẠY HỌC CHỦ YẾU (CHUẨN CÔNG VĂN 2345/BGDĐT-GDTH)</h3>
+        <h3>III. CÁC HOẠT ĐỘNG DẠY HỌC CHỦ YẾU (BẢNG 4 CỘT CHUẨN CÔNG VĂN 2345/BGDĐT-GDTH)</h3>
         <table>
-          <tr>
-            <th style='width: 30%;'>Tiến trình hoạt động</th>
-            <th style='width: 70%;'>Hoạt động của Giáo viên & Học sinh</th>
-          </tr>
-          ${plan.activities.map(a => `
+          <thead>
             <tr>
-              <td><b>${a.phase}</b></td>
-              <td>
-                <p><b>- Thầy giáo:</b> ${a.teacherAct}</p>
-                <p><b>- Học sinh:</b> ${a.studentAct || 'Tích cực thực hành và tương tác.'}</p>
-              </td>
+              <th style="width: 20%;">Hoạt động dạy học & Thời lượng</th>
+              <th style="width: 35%;">Hoạt động của Giáo viên (Hệ thống câu hỏi gợi mở & Thị phạm)</th>
+              <th style="width: 30%;">Hoạt động của Học sinh (Thực hành & Câu trả lời dự kiến)</th>
+              <th style="width: 15%;">Dự kiến sản phẩm</th>
             </tr>
-          `).join('')}
+          </thead>
+          <tbody>
+            ${plan.activities.map(a => `
+              <tr>
+                <td>
+                  <p><b>${a.phase}</b></p>
+                  <p><i>(${a.duration || 'Tiết dạy'})</i></p>
+                  <p><b>Hình thức:</b> ${a.method || 'Cả lớp / Cá nhân'}</p>
+                  <p><b>Mục tiêu:</b> ${a.objective || 'Nắm kiến thức bài học'}</p>
+                </td>
+                <td>
+                  <p>${a.teacherAct}</p>
+                  ${a.teacherQuestions && a.teacherQuestions.length > 0 ? `
+                    <div class="q-box">
+                      <b>❓ Dự kiến câu hỏi gợi mở của Thầy:</b>
+                      <ul>
+                        ${a.teacherQuestions.map(q => `<li>${q}</li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </td>
+                <td>
+                  <p>${a.studentAct}</p>
+                  ${a.studentAnswers && a.studentAnswers.length > 0 ? `
+                    <div class="a-box">
+                      <b>💬 Dự kiến câu trả lời của Học sinh:</b>
+                      <ul>
+                        ${a.studentAnswers.map(ans => `<li>${ans}</li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </td>
+                <td>
+                  <p><b>${a.expectedProduct || 'Sản phẩm mĩ thuật theo chủ đề'}</b></p>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <h3>IV. NỘI DUNG TÍCH HỢP LIÊN MÔN & GIÁO DỤC TOÀN DIỆN (CHƯƠNG TRÌNH GDPT 2018)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 28%;">Lĩnh vực tích hợp</th>
+              <th style="width: 72%;">Nội dung và phương thức tích hợp trong bài dạy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>📐 Tích hợp Toán học (Hình học & Tỉ lệ)</b></td>
+              <td>${plan.integrations?.math || 'Nhận diện các hình phẳng, hình khối và ước lượng tỉ lệ cân đối.'}</td>
+            </tr>
+            <tr>
+              <td><b>🌿 Tích hợp Tự nhiên & Xã hội / Lịch sử - Địa lí</b></td>
+              <td>${plan.integrations?.society || 'Khám phá vẻ đẹp thiên nhiên, đời sống văn hóa và con người quê hương.'}</td>
+            </tr>
+            <tr>
+              <td><b>📖 Tích hợp Tiếng Việt / Văn học</b></td>
+              <td>${plan.integrations?.vietnamese || 'Mở rộng vốn từ ngữ thẩm mĩ, rèn kĩ năng biểu đạt và kể chuyện tranh.'}</td>
+            </tr>
+            <tr>
+              <td><b>🎵 Tích hợp Âm nhạc & Vận động</b></td>
+              <td>${plan.integrations?.music || 'Cảm nhận nhịp điệu của đường nét và sắc thái vui tươi qua âm hưởng nghệ thuật.'}</td>
+            </tr>
+            <tr>
+              <td><b>🌍 Tích hợp Môi trường & Địa phương</b></td>
+              <td>${plan.integrations?.environment || 'Ý thức giữ gìn vệ sinh lớp học, thu dọn rác, tái chế vật liệu, yêu quý danh lam địa phương.'}</td>
+            </tr>
+            <tr>
+              <td><b>🤝 Tích hợp Kĩ năng sống & Quyền con người (SEL)</b></td>
+              <td>${plan.integrations?.sel || 'Lắng nghe, hợp tác tích cực, tôn trọng phong cách sáng tạo riêng biệt của bạn bè.'}</td>
+            </tr>
+            <tr>
+              <td><b>💡 Tích hợp Giáo dục STEM / STEAM</b></td>
+              <td>${plan.integrations?.steam || 'Khám phá cấu trúc vật liệu, pha trộn hòa sắc quang học và ứng dụng sản phẩm thực tế.'}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>V. ĐIỀU CHỈNH SAU BÀI DẠY (NẾU CÓ)</h3>
+        <p>................................................................................................................................................................</p>
+        <p>................................................................................................................................................................</p>
+
+        <table class="meta-table" style="margin-top: 35px;">
+          <tr>
+            <td style="width: 50%; text-align: center;">
+              <b>BAN GIÁM HIỆU DUYỆT</b><br/>
+              <i>(Ký và ghi rõ họ tên)</i>
+              <br/><br/><br/><br/>
+            </td>
+            <td style="width: 50%; text-align: center;">
+              <i>Ngày ..... tháng ..... năm 202...</i><br/>
+              <b>GIÁO VIÊN SOẠN BÀI</b><br/>
+              <i>(Ký và ghi rõ họ tên)</i><br/><br/>
+              <b>${teacherName}</b>
+            </td>
+          </tr>
         </table>
       </body>
       </html>
@@ -734,167 +843,267 @@ export default function ThematicTeacherChat({
                     </div>
                   </div>
 
-                  {/* Slide Content Body */}
-                  <div className="my-6">
-                    <h3 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
-                      {currentSlide.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm font-extrabold text-orange-600 mt-1">
-                      {currentSlide.subtitle}
-                    </p>
+                  {/* Slide Content Body: 2 Cột (Trái: Sư phạm & Đàm thoại Thầy - Trò; Phải: Tranh Mẫu Trực Quan SGK) */}
+                  <div className="my-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Cột Trái (7 Cột): Tiến trình, Gạch đầu dòng, Câu hỏi Thầy & Trả lời Trò, Tương tác */}
+                    <div className="lg:col-span-7 flex flex-col gap-4">
+                      <div>
+                        <h3 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
+                          {currentSlide.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm font-extrabold text-orange-600 mt-1">
+                          {currentSlide.subtitle}
+                        </p>
+                      </div>
 
-                    {/* Bullet Points with Animation */}
-                    <div className="mt-6 flex flex-col gap-3">
-                      {currentSlide.bullets.map((bullet, idx) => (
-                        <div 
-                          key={idx} 
-                          className="flex items-start gap-3 bg-white/95 p-3.5 sm:p-4 rounded-2xl border-2 border-orange-100 shadow-sm hover:border-orange-300 transition"
-                        >
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                          <span className="text-sm sm:text-base font-bold text-gray-800 leading-snug">
-                            {bullet}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                      {/* Bullet Points with Animation */}
+                      <div className="flex flex-col gap-2.5">
+                        {currentSlide.bullets.map((bullet, idx) => (
+                          <div 
+                            key={idx} 
+                            className="flex items-start gap-2.5 bg-white/95 p-3 rounded-2xl border border-orange-100 shadow-xs hover:border-orange-300 transition"
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="text-xs sm:text-sm font-bold text-gray-800 leading-snug">
+                              {bullet}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
 
-                    {/* 3. Interactive Action Box per Slide Type */}
-                    {currentSlide.interactiveAction && (
-                      <div className="mt-5 p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-orange-100 to-pink-100 border-2 border-amber-300 shadow-sm">
-                        {currentSlide.interactiveAction.type === 'quiz' && (
-                          <div className="flex flex-col gap-2.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-black text-amber-900 flex items-center gap-1.5">
-                                <HelpCircle className="w-4 h-4 text-amber-700" />
-                                <span>{currentSlide.interactiveAction.label}</span>
-                              </span>
-                              {currentSlide.interactiveAction.options && (
-                                <span className="text-[10px] font-black text-amber-800 bg-white/80 px-2 py-0.5 rounded-lg border border-amber-200">
-                                  Bấm chọn 1 đáp án đúng
+                      {/* ❓ DỰ KIẾN CÂU HỎI GỢI MỞ CỦA THẦY & 💬 CÂU TRẢ LỜI CỦA HỌC SINH */}
+                      {currentSlide.teacherQuestions && currentSlide.teacherQuestions.length > 0 && (
+                        <div className="bg-amber-50/80 rounded-2xl p-3.5 border-2 border-amber-200 flex flex-col gap-2.5 shadow-xs">
+                          <div className="flex items-center gap-1.5 text-xs font-black text-amber-900 border-b border-amber-200/60 pb-1.5">
+                            <HelpCircle className="w-4 h-4 text-amber-600" />
+                            <span>Đàm Thoại Sư Phạm Giữa Thầy & Học Sinh:</span>
+                          </div>
+                          {currentSlide.teacherQuestions.map((q, qIdx) => (
+                            <div key={qIdx} className="space-y-1.5">
+                              <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs">
+                                <span className="px-1.5 py-0.5 bg-amber-500 text-white font-black text-[10px] rounded shrink-0">
+                                  Thầy hỏi
                                 </span>
+                                <p className="text-xs font-black text-amber-950 leading-relaxed">
+                                  "{q}"
+                                </p>
+                              </div>
+                              {currentSlide.studentAnswers && currentSlide.studentAnswers[qIdx] && (
+                                <div className="flex items-start gap-2 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 ml-3 shadow-xs">
+                                  <span className="px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[10px] rounded shrink-0">
+                                    Bé thưa
+                                  </span>
+                                  <p className="text-xs font-extrabold text-emerald-950 leading-relaxed">
+                                    "{currentSlide.studentAnswers[qIdx]}"
+                                  </p>
+                                </div>
                               )}
                             </div>
-                            <p className="text-xs sm:text-sm font-extrabold text-gray-900 leading-snug">
-                              "{currentSlide.interactiveAction.question}"
-                            </p>
-                            
-                            {currentSlide.interactiveAction.options ? (
-                              <div className="flex flex-col gap-2 mt-1">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                  {currentSlide.interactiveAction.options.map((opt, idx) => {
-                                    const isSelected = selectedQuizOption === idx;
-                                    const isCorrect = idx === (currentSlide.interactiveAction.correctIndex ?? 0);
-                                    let btnStyle = 'bg-white hover:bg-amber-50 text-gray-800 border-amber-200';
-                                    if (quizAnswered) {
-                                      if (isCorrect) btnStyle = 'bg-emerald-500 text-white border-emerald-600 shadow-md ring-2 ring-emerald-300 scale-102';
-                                      else if (isSelected) btnStyle = 'bg-rose-100 text-rose-800 border-rose-300';
-                                    } else if (isSelected) {
-                                      btnStyle = 'bg-amber-100 text-amber-900 border-amber-400';
-                                    }
+                          ))}
+                        </div>
+                      )}
 
-                                    return (
-                                      <button
-                                        key={idx}
-                                        onClick={() => handleChooseQuizOption(idx)}
-                                        className={`p-3 rounded-2xl border-2 text-xs font-black text-left transition-all flex items-center gap-2.5 shadow-xs ${btnStyle}`}
-                                      >
-                                        <span className="w-6 h-6 rounded-xl bg-black/10 flex items-center justify-center text-xs font-black shrink-0">
-                                          {['A', 'B', 'C'][idx] || idx + 1}
-                                        </span>
-                                        <span className="leading-tight">{opt}</span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-
-                                {quizFeedback && (
-                                  <div className={`p-3 rounded-2xl text-xs font-extrabold border-2 flex items-center gap-2.5 animate-in fade-in ${
-                                    quizFeedback.correct 
-                                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-sm' 
-                                      : 'bg-amber-50 text-amber-900 border-amber-300'
-                                  }`}>
-                                    <span className="text-xl shrink-0">{quizFeedback.correct ? '🎉' : '💡'}</span>
-                                    <span className="leading-relaxed">{quizFeedback.text}</span>
-                                  </div>
+                      {/* 3. Interactive Action Box per Slide Type */}
+                      {currentSlide.interactiveAction && (
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-orange-100 to-pink-100 border-2 border-amber-300 shadow-sm">
+                          {currentSlide.interactiveAction.type === 'quiz' && (
+                            <div className="flex flex-col gap-2.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-black text-amber-900 flex items-center gap-1.5">
+                                  <HelpCircle className="w-4 h-4 text-amber-700" />
+                                  <span>{currentSlide.interactiveAction.label}</span>
+                                </span>
+                                {currentSlide.interactiveAction.options && (
+                                  <span className="text-[10px] font-black text-amber-800 bg-white/80 px-2 py-0.5 rounded-lg border border-amber-200">
+                                    Bấm chọn 1 đáp án đúng
+                                  </span>
                                 )}
                               </div>
-                            ) : !quizAnswered ? (
-                              <div className="flex gap-2 flex-wrap mt-1">
-                                <button
-                                  onClick={() => handleQuizAnswer(true)}
-                                  className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-xl shadow transition"
-                                >
-                                  ✓ Con trả lời được rồi Thầy ơi!
-                                </button>
-                                <button
-                                  onClick={() => handleQuizAnswer(false)}
-                                  className="px-3.5 py-1.5 bg-white hover:bg-amber-50 text-amber-800 font-extrabold text-xs rounded-xl border border-amber-300 shadow-sm transition"
-                                >
-                                  💡 Thầy cho con gợi ý với ạ!
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="p-2.5 bg-white/80 rounded-xl text-xs font-bold text-amber-950 border border-amber-300">
-                                👏 {currentSlide.interactiveAction.hint}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {currentSlide.interactiveAction.type === 'draw' && (
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div>
-                              <span className="text-xs font-black text-pink-900 block">
-                                🎨 Hoạt Động Thực Hành:
-                              </span>
-                              <p className="text-xs font-bold text-gray-700">
-                                Sẵn sàng đưa ý tưởng vào bài vẽ cùng Thầy!
+                              <p className="text-xs sm:text-sm font-extrabold text-gray-900 leading-snug">
+                                "{currentSlide.interactiveAction.question}"
                               </p>
-                            </div>
-                            <button
-                              onClick={onStartDrawingOnCanvas}
-                              className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg hover:scale-105 active:scale-95 transition flex items-center gap-1.5 animate-pulse"
-                            >
-                              <Palette className="w-4 h-4" />
-                              <span>Mở Bảng Vẽ Ngay</span>
-                            </button>
-                          </div>
-                        )}
+                              
+                              {currentSlide.interactiveAction.options ? (
+                                <div className="flex flex-col gap-2 mt-1">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    {currentSlide.interactiveAction.options.map((opt, idx) => {
+                                      const isSelected = selectedQuizOption === idx;
+                                      const isCorrect = idx === (currentSlide.interactiveAction.correctIndex ?? 0);
+                                      let btnStyle = 'bg-white hover:bg-amber-50 text-gray-800 border-amber-200';
+                                      if (quizAnswered) {
+                                        if (isCorrect) btnStyle = 'bg-emerald-500 text-white border-emerald-600 shadow-md ring-2 ring-emerald-300 scale-102';
+                                        else if (isSelected) btnStyle = 'bg-rose-100 text-rose-800 border-rose-300';
+                                      } else if (isSelected) {
+                                        btnStyle = 'bg-amber-100 text-amber-900 border-amber-400';
+                                      }
 
-                        {currentSlide.interactiveAction.type === 'critique' && (
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div>
-                              <span className="text-xs font-black text-amber-900 block">
-                                🏅 Góc Triển Lãm & Đánh Giá:
-                              </span>
-                              <p className="text-xs font-bold text-gray-700">
-                                Đánh giá theo Thang Rubric 4 Tiêu chí GDPT 2018!
-                              </p>
+                                      return (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleChooseQuizOption(idx)}
+                                          className={`p-3 rounded-2xl border-2 text-xs font-black text-left transition-all flex items-center gap-2.5 shadow-xs ${btnStyle}`}
+                                        >
+                                          <span className="w-6 h-6 rounded-xl bg-black/10 flex items-center justify-center text-xs font-black shrink-0">
+                                            {['A', 'B', 'C'][idx] || idx + 1}
+                                          </span>
+                                          <span className="leading-tight">{opt}</span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {quizFeedback && (
+                                    <div className={`p-3 rounded-2xl text-xs font-extrabold border-2 flex items-center gap-2.5 animate-in fade-in ${
+                                      quizFeedback.correct 
+                                        ? 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-sm' 
+                                        : 'bg-amber-50 text-amber-900 border-amber-300'
+                                    }`}>
+                                      <span className="text-xl shrink-0">{quizFeedback.correct ? '🎉' : '💡'}</span>
+                                      <span className="leading-relaxed">{quizFeedback.text}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : !quizAnswered ? (
+                                <div className="flex gap-2 flex-wrap mt-1">
+                                  <button
+                                    onClick={() => handleQuizAnswer(true)}
+                                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs rounded-xl shadow transition"
+                                  >
+                                    ✓ Con trả lời được rồi Thầy ơi!
+                                  </button>
+                                  <button
+                                    onClick={() => handleQuizAnswer(false)}
+                                    className="px-3.5 py-1.5 bg-white hover:bg-amber-50 text-amber-800 font-extrabold text-xs rounded-xl border border-amber-300 shadow-sm transition"
+                                  >
+                                    💡 Thầy cho con gợi ý với ạ!
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="p-2.5 bg-white/80 rounded-xl text-xs font-bold text-amber-950 border border-amber-300">
+                                  👏 {currentSlide.interactiveAction.hint}
+                                </div>
+                              )}
                             </div>
-                            {onGoToCritique && (
+                          )}
+
+                          {currentSlide.interactiveAction.type === 'draw' && (
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div>
+                                <span className="text-xs font-black text-pink-900 block">
+                                  🎨 Hoạt Động Thực Hành:
+                                </span>
+                                <p className="text-xs font-bold text-gray-700">
+                                  Sẵn sàng đưa ý tưởng vào bài vẽ cùng Thầy!
+                                </p>
+                              </div>
                               <button
-                                onClick={onGoToCritique}
-                                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg hover:scale-105 active:scale-95 transition flex items-center gap-1.5"
+                                onClick={() => {
+                                  const svgContent = currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg;
+                                  if (svgContent && onStartDrawingOnCanvas) {
+                                    const dataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgContent);
+                                    onStartDrawingOnCanvas(dataUrl);
+                                  } else if (onStartDrawingOnCanvas) {
+                                    onStartDrawingOnCanvas();
+                                  }
+                                }}
+                                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg hover:scale-105 active:scale-95 transition flex items-center gap-1.5 animate-pulse"
                               >
-                                <Camera className="w-4 h-4" />
-                                <span>Mắt Thần Chấm Tranh</span>
+                                <Palette className="w-4 h-4" />
+                                <span>Mở Bảng Vẽ Ngay</span>
                               </button>
-                            )}
+                            </div>
+                          )}
+
+                          {currentSlide.interactiveAction.type === 'critique' && (
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div>
+                                <span className="text-xs font-black text-amber-900 block">
+                                  🏅 Góc Triển Lãm & Đánh Giá:
+                                </span>
+                                <p className="text-xs font-bold text-gray-700">
+                                  Đánh giá theo Thang Rubric 4 Tiêu chí GDPT 2018!
+                                </p>
+                              </div>
+                              {onGoToCritique && (
+                                <button
+                                  onClick={onGoToCritique}
+                                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg hover:scale-105 active:scale-95 transition flex items-center gap-1.5"
+                                >
+                                  <Camera className="w-4 h-4" />
+                                  <span>Mắt Thần Chấm Tranh</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {currentSlide.interactiveAction.type === 'apply' && (
+                            <div>
+                              <span className="text-xs font-black text-indigo-900 block">
+                                🚀 Thử Thách Vận Dụng Đời Sống:
+                              </span>
+                              <p className="text-xs font-bold text-gray-700 mt-0.5">
+                                Mang bức tranh của con về trang trí góc học tập hoặc làm món quà tặng người thân thân yêu nhé!
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Cột Phải (5 Cột): KHUNG TRANH MẪU TRỰC QUAN SINH ĐỘNG THEO SGK */}
+                    <div className="lg:col-span-5 flex flex-col gap-3">
+                      <div className="bg-white rounded-3xl p-3.5 sm:p-4 border-4 border-amber-300 shadow-xl flex flex-col gap-3">
+                        <div className="flex items-center justify-between border-b border-amber-100 pb-2">
+                          <span className="text-xs font-black text-amber-900 flex items-center gap-1.5 truncate">
+                            <Palette className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span className="truncate">{currentSlide.visualArt?.title || `Tranh Mẫu: ${selectedUnit.title}`}</span>
+                          </span>
+                          <span className="text-[10px] font-black px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full border border-amber-200 shrink-0">
+                            Chuẩn SGK
+                          </span>
+                        </div>
+
+                        {/* Visual Artwork SVG Container */}
+                        <div 
+                          className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 shadow-inner flex items-center justify-center p-1"
+                          dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
+                        />
+
+                        {/* Caption & Visual Analysis */}
+                        <p className="text-xs font-semibold text-gray-700 italic bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 leading-relaxed">
+                          {currentSlide.visualArt?.caption || selectedUnit.visualArt?.caption}
+                        </p>
+
+                        {/* Elements Analysis */}
+                        {currentSlide.visualArt?.elements && (
+                          <div className="flex flex-col gap-1.5 text-[11px]">
+                            <div className="bg-sky-50 text-sky-950 p-2 rounded-xl border border-sky-200 font-bold leading-tight">
+                              <span className="text-sky-700 font-black">🎨 Hòa sắc:</span> {currentSlide.visualArt.elements.color}
+                            </div>
+                            <div className="bg-purple-50 text-purple-950 p-2 rounded-xl border border-purple-200 font-bold leading-tight">
+                              <span className="text-purple-700 font-black">📐 Bố cục:</span> {currentSlide.visualArt.elements.composition}
+                            </div>
                           </div>
                         )}
 
-                        {currentSlide.interactiveAction.type === 'apply' && (
-                          <div>
-                            <span className="text-xs font-black text-indigo-900 block">
-                              🚀 Thử Thách Vận Dụng Đời Sống:
-                            </span>
-                            <p className="text-xs font-bold text-gray-700 mt-0.5">
-                              Mang bức tranh của con về trang trí góc học tập hoặc làm món quà tặng người thân thân yêu nhé!
-                            </p>
-                          </div>
-                        )}
+                        {/* Action: Send to Canvas */}
+                        <button
+                          onClick={() => {
+                            const svgContent = currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg;
+                            if (svgContent && onStartDrawingOnCanvas) {
+                              const dataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgContent);
+                              onStartDrawingOnCanvas(dataUrl);
+                            } else if (onStartDrawingOnCanvas) {
+                              onStartDrawingOnCanvas();
+                            }
+                          }}
+                          className="w-full py-2.5 px-3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:from-pink-600 hover:to-amber-600 text-white font-black text-xs rounded-xl shadow-md hover:scale-102 active:scale-98 transition flex items-center justify-center gap-1.5"
+                        >
+                          <Palette className="w-4 h-4" />
+                          <span>Đưa Tranh Mẫu Này Vào Bảng Vẽ</span>
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   {/* 4. Teacher Lecture Speech Bar with Audio Waves */}
@@ -1048,26 +1257,138 @@ export default function ThematicTeacherChat({
                   </div>
                 </div>
 
-                {/* Section III */}
+                {/* Section III: Bảng 4 cột chuẩn Công văn 2345/BGDĐT-GDTH */}
                 <div>
                   <h5 className="font-black text-blue-900 text-sm mb-2 uppercase flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    <span>III. Các Hoạt Động Dạy Học Chủ Yếu (5 Bước CV 2345):</span>
+                    <span>III. Các Hoạt Động Dạy Học Chủ Yếu (Bảng 4 Cột Chuẩn Công Văn 2345/BGDĐT-GDTH):</span>
                   </h5>
-                  <div className="space-y-3">
-                    {selectedUnit.wordLessonPlan.activities.map((act, i) => (
-                      <div key={i} className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                        <span className="font-black text-blue-800 text-xs sm:text-sm block mb-1">
-                          {act.phase}
-                        </span>
-                        <p className="text-xs sm:text-sm text-gray-700 mt-1">
-                          <b>- Giáo viên:</b> {act.teacherAct}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                          <b>- Học sinh:</b> {act.studentAct || 'Tích cực tham gia và thực hành sáng tạo.'}
-                        </p>
-                      </div>
-                    ))}
+                  
+                  <div className="overflow-x-auto rounded-2xl border-2 border-blue-200 shadow-sm">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-xs">
+                          <th className="p-3 border border-blue-500 w-[22%]">Hoạt động dạy học & Thời lượng</th>
+                          <th className="p-3 border border-blue-500 w-[34%]">Hoạt động của Giáo viên (Thị phạm & Câu hỏi gợi mở)</th>
+                          <th className="p-3 border border-blue-500 w-[30%]">Hoạt động của Học sinh (Thực hành & Trả lời dự kiến)</th>
+                          <th className="p-3 border border-blue-500 w-[14%]">Sản phẩm dự kiến</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-blue-100 bg-white">
+                        {selectedUnit.wordLessonPlan.activities.map((act, i) => (
+                          <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'}>
+                            <td className="p-3 border border-blue-100 align-top">
+                              <span className="font-black text-blue-950 block text-xs sm:text-sm">
+                                {act.phase}
+                              </span>
+                              <span className="text-[11px] font-bold text-amber-700 block mt-0.5">
+                                ⏱️ {act.duration || 'Tiết dạy'}
+                              </span>
+                              <span className="text-[11px] font-semibold text-gray-500 block mt-1">
+                                <b>Hình thức:</b> {act.method || 'Cả lớp'}
+                              </span>
+                              {act.objective && (
+                                <p className="text-[11px] text-gray-600 mt-1 italic leading-tight">
+                                  🎯 <i>{act.objective}</i>
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="p-3 border border-blue-100 align-top space-y-2">
+                              <p className="font-semibold text-gray-800 leading-relaxed">
+                                {act.teacherAct}
+                              </p>
+                              {act.teacherQuestions && act.teacherQuestions.length > 0 && (
+                                <div className="bg-amber-50 p-2.5 rounded-xl border border-amber-200 space-y-1">
+                                  <span className="text-[11px] font-black text-amber-900 block">
+                                    ❓ Dự kiến hệ thống câu hỏi của Thầy:
+                                  </span>
+                                  <ul className="list-disc list-inside space-y-0.5 text-amber-950 text-[11px]">
+                                    {act.teacherQuestions.map((q, qIdx) => (
+                                      <li key={qIdx} className="font-medium">"{q}"</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </td>
+
+                            <td className="p-3 border border-blue-100 align-top space-y-2">
+                              <p className="font-medium text-gray-700 leading-relaxed">
+                                {act.studentAct || 'Tích cực tham gia và thực hành sáng tạo.'}
+                              </p>
+                              {act.studentAnswers && act.studentAnswers.length > 0 && (
+                                <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 space-y-1">
+                                  <span className="text-[11px] font-black text-emerald-900 block">
+                                    💬 Dự kiến câu trả lời của Học sinh:
+                                  </span>
+                                  <ul className="list-disc list-inside space-y-0.5 text-emerald-950 text-[11px]">
+                                    {act.studentAnswers.map((ans, aIdx) => (
+                                      <li key={aIdx} className="font-medium">"{ans}"</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </td>
+
+                            <td className="p-3 border border-blue-100 align-top">
+                              <span className="inline-block px-2 py-1 bg-purple-50 text-purple-900 font-bold rounded-lg border border-purple-200 text-[11px] leading-tight">
+                                📦 {act.expectedProduct || 'Sản phẩm mĩ thuật theo chủ đề'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Section IV: Tích hợp liên môn & giáo dục toàn diện (GDPT 2018) */}
+                <div>
+                  <h5 className="font-black text-blue-900 text-sm mb-2 uppercase flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <span>IV. Nội Dung Tích Hợp Liên Môn & Giáo Dục Toàn Diện (GDPT 2018):</span>
+                  </h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div className="bg-amber-50/70 p-3 rounded-2xl border border-amber-200">
+                      <span className="font-black text-amber-900 block mb-0.5">📐 1. Tích Hợp Toán Học (Hình Học & Tỉ Lệ):</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.math}</p>
+                    </div>
+                    <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200">
+                      <span className="font-black text-emerald-900 block mb-0.5">🌿 2. Tự Nhiên - Xã Hội & Lịch Sử - Địa Lí:</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.society}</p>
+                    </div>
+                    <div className="bg-blue-50/70 p-3 rounded-2xl border border-blue-200">
+                      <span className="font-black text-blue-900 block mb-0.5">📖 3. Tích Hợp Tiếng Việt / Văn Học:</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.vietnamese}</p>
+                    </div>
+                    <div className="bg-pink-50/70 p-3 rounded-2xl border border-pink-200">
+                      <span className="font-black text-pink-900 block mb-0.5">🎵 4. Tích Hợp Âm Nhạc & Vận Động:</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.music}</p>
+                    </div>
+                    <div className="bg-teal-50/70 p-3 rounded-2xl border border-teal-200">
+                      <span className="font-black text-teal-900 block mb-0.5">🌍 5. Bảo Vệ Môi Trường & Địa Phương:</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.environment}</p>
+                    </div>
+                    <div className="bg-rose-50/70 p-3 rounded-2xl border border-rose-200">
+                      <span className="font-black text-rose-900 block mb-0.5">🤝 6. Kĩ Năng Sống & Quyền Trẻ Em (SEL):</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.sel}</p>
+                    </div>
+                    <div className="md:col-span-2 bg-indigo-50/70 p-3 rounded-2xl border border-indigo-200">
+                      <span className="font-black text-indigo-900 block mb-0.5">💡 7. Giáo Dục STEM / STEAM (Khoa Học Ứng Dụng):</span>
+                      <p className="text-gray-700 font-medium">{selectedUnit.wordLessonPlan.integrations?.steam}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section V: Chữ ký hành chính */}
+                <div className="pt-4 border-t border-gray-200 flex items-center justify-between text-xs font-bold text-gray-600">
+                  <div className="text-center">
+                    <p className="uppercase">Ban Giám Hiệu Phê Duyệt</p>
+                    <p className="text-[11px] text-gray-400 italic mt-8">(Ký và ghi rõ họ tên)</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="uppercase">Giáo Viên Giảng Dạy</p>
+                    <p className="text-blue-900 font-black mt-8">{teacherName}</p>
                   </div>
                 </div>
               </div>
