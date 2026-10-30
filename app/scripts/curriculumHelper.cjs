@@ -1,6 +1,11 @@
 // Helper module for generating complete curriculum dataset
 // Compliant with GDPT 2018 (Thông tư 32/2018/TT-BGDĐT) & Công văn 2345/BGDĐT-GDTH
-const { getUnitThemeKey, getUnitSpecificIntegrations } = require('./thematicPedagogyMapper.cjs');
+const { 
+  getUnitThemeKey, 
+  getUnitSpecificIntegrations,
+  getThematicImagePrompts,
+  getThematicActivitiesQA 
+} = require('./thematicPedagogyMapper.cjs');
 
 function generateUnitSvgByTheme(theme, u) {
   const title = u.title;
@@ -824,12 +829,16 @@ function buildUnit(u) {
   const theme = getUnitThemeKey(u);
   const visualSvg = generateUnitSvgByTheme(theme, u);
   const integrations = getUnitSpecificIntegrations(u);
+  const thematicImages = getThematicImagePrompts(u, theme);
+  const thematicQA = getThematicActivitiesQA(u, theme);
 
   const visualArt = {
     title: `Tranh mẫu SGK: ${u.title}`,
     themeKey: theme,
     caption: `Tác phẩm thị phạm chuẩn SGK Kết nối tri thức - Khám phá các yếu tố tạo hình và hòa sắc độc đáo của chủ đề ${u.title}.`,
     svg: visualSvg,
+    imageUrl: thematicImages.mainImageUrl,
+    prompt: thematicImages.mainPrompt,
     elements: {
       line: 'Nét vẽ tự tin, đường nét mềm mại kết hợp hình khối hài hòa.',
       color: 'Hòa sắc tươi sáng, tương phản ấn tượng giữa chủ thể chính và nền tranh.',
@@ -844,15 +853,9 @@ function buildUnit(u) {
       method: 'Đố vui tương tác • Khơi nguồn cảm xúc',
       objective: `Kích thích trí tò mò, tạo không khí học tập vui tươi về bài học ${u.title}.`,
       teacherAct: `Giáo viên trình chiếu tranh mẫu trực quan sinh động, đặt câu hỏi gợi mở và dẫn dắt học sinh vào chủ đề ${u.title}.`,
-      teacherQuestions: [
-        `Các con hãy quan sát tranh mẫu và cho Thầy biết: Bức tranh mang lại cho con cảm xúc gì?`,
-        `Đố các con phát hiện ra những hình ảnh, màu sắc quen thuộc nào được thể hiện trong tranh?`
-      ],
+      teacherQuestions: thematicQA[0].teacherQuestions,
       studentAct: `Học sinh quan sát tranh mẫu trên màn hình, hào hứng xung phong trả lời câu hỏi và chia sẻ cảm xúc.`,
-      studentAnswers: [
-        `Dạ thưa Thầy, con thấy bức tranh rất đẹp, màu sắc tươi vui và sinh động ạ!`,
-        `Dạ con nhìn thấy các hình ảnh rất gần gũi với bài học ${u.title} mà Thầy vừa giới thiệu ạ!`
-      ],
+      studentAnswers: thematicQA[0].studentAnswers,
       expectedProduct: `Tâm thế hào hứng, câu trả lời nhận thức ban đầu của học sinh về chủ đề bài học.`
     },
     {
@@ -861,17 +864,9 @@ function buildUnit(u) {
       method: 'Quan sát trực quan • Thảo luận nhóm đôi',
       objective: `Phân tích chi tiết đường nét, màu sắc, hình khối và bố cục đặc trưng của ${u.title}.`,
       teacherAct: `Giáo viên hướng dẫn học sinh quan sát tác phẩm mẫu phóng to, đặt hệ thống câu hỏi phân tích từ tổng thể đến chi tiết.`,
-      teacherQuestions: [
-        `Trong tác phẩm mẫu, hình ảnh chính được vẽ ở vị trí nào và có kích thước ra sao?`,
-        `Con thấy tác giả đã sử dụng những gam màu nào để làm nổi bật chủ đề của bài học?`,
-        `Nét vẽ trong tranh là nét thẳng khỏe khoắn hay nét cong mềm mại uyển chuyển?`
-      ],
+      teacherQuestions: thematicQA[1].teacherQuestions,
       studentAct: `Học sinh thảo luận cặp đôi, chỉ ra các chi tiết mảng chính, mảng phụ và phát biểu nhận xét.`,
-      studentAnswers: [
-        `Dạ thưa Thầy, hình ảnh chính được vẽ to, rõ ràng ở ngay chính giữa trang giấy ạ!`,
-        `Dạ con thấy có các mảng màu tươi sáng nổi bật trên nền tranh hài hòa ạ!`,
-        `Dạ có sự kết hợp nhịp nhàng giữa nét thẳng và các nét cong rất sinh động ạ!`
-      ],
+      studentAnswers: thematicQA[1].studentAnswers,
       expectedProduct: `Học sinh nhận biết và phân tích được các yếu tố tạo hình (nét, hình, màu, khối) của bài học.`
     },
     {
@@ -880,15 +875,9 @@ function buildUnit(u) {
       method: 'Thị phạm của Thầy • Thực hành sáng tạo',
       objective: `Học sinh nắm chắc 3 bước thực hành và tự tin vẽ bức tranh sáng tạo của riêng mình.`,
       teacherAct: `Giáo viên thị phạm các bước vẽ trên bảng; nhắc nhở tư thế ngồi vẽ; đi đến từng bàn hướng dẫn và khích lệ các em.`,
-      teacherQuestions: [
-        `Bước đầu tiên khi vẽ, chúng mình cần làm gì để bài vẽ nằm cân đối giữa trang giấy?`,
-        `Con dự định sẽ phối màu gì cho hình ảnh chính để bức tranh của con thật độc đáo?`
-      ],
+      teacherQuestions: thematicQA[2].teacherQuestions,
       studentAct: `Học sinh chú ý theo dõi thao tác thị phạm của Thầy; sau đó mở vở vẽ / bảng vẽ và tự tin thực hành sáng tạo.`,
-      studentAnswers: [
-        `Dạ con nhớ lời Thầy dặn: Bước 1 phải phác hình to ở giữa trang giấy trước ạ!`,
-        `Dạ con sẽ chọn những màu sắc con yêu thích nhất cho hình chính, sau đó tô màu nền nhẹ nhàng ạ!`
-      ],
+      studentAnswers: thematicQA[2].studentAnswers,
       expectedProduct: `Bản phác thảo hoặc bức tranh vẽ hoàn chỉnh về chủ đề ${u.title} thể hiện cá tính riêng của học sinh.`
     },
     {
@@ -897,15 +886,9 @@ function buildUnit(u) {
       method: 'Góc triển lãm • Đánh giá theo Rubric',
       objective: `Phát triển năng lực cảm thụ thẩm mĩ, tự đánh giá và nhận xét bài của bạn theo 4 tiêu chí GDPT 2018.`,
       teacherAct: `Giáo viên hướng dẫn đính bài lên góc triển lãm lớp; tổ chức bình chọn bài vẽ ấn tượng; nhận xét khích lệ theo Rubric.`,
-      teacherQuestions: [
-        `Con thích nhất bài vẽ nào của bạn trong lớp hôm nay? Vì sao con ấn tượng với bài vẽ đó?`,
-        `Nếu được bổ sung thêm một chi tiết nhỏ để bức tranh của con hoàn hảo hơn, con sẽ làm gì?`
-      ],
+      teacherQuestions: thematicQA[3].teacherQuestions,
       studentAct: `Học sinh mang bài lên triển lãm; tự tin giới thiệu tranh của mình; chia sẻ lời khen ngợi bạn chân thành.`,
-      studentAnswers: [
-        `Dạ con thích bài của bạn vì bạn tô màu rất đều, nét vẽ tự tin và màu sắc tươi sáng ạ!`,
-        `Dạ con sẽ nhấn đậm thêm một chút ở phần bóng đổ để bức tranh có chiều sâu hơn ạ!`
-      ],
+      studentAnswers: thematicQA[3].studentAnswers,
       expectedProduct: `Phiếu đánh giá nhận xét theo Rubric 4 tiêu chí; lời chia sẻ tự tin và sự tiến bộ về cảm thụ mĩ thuật.`
     },
     {
@@ -914,15 +897,9 @@ function buildUnit(u) {
       method: 'Liên hệ thực tế • Sáng tạo đời sống',
       objective: `Đưa cái đẹp mĩ thuật vào trang trí góc học tập và ứng dụng thực tiễn trong cuộc sống.`,
       teacherAct: `Giáo viên gợi mở các ý tưởng vận dụng sản phẩm vào đời sống; nhắc nhở vệ sinh đồ dùng gọn gàng sạch sẽ.`,
-      teacherQuestions: [
-        `Con có thể dùng bức tranh tuyệt đẹp hôm nay để làm món quà ý nghĩa gửi tặng ai?`,
-        `Sau giờ học vẽ, một bạn nhỏ ngăn nắp sẽ làm gì với đồ dùng học tập của mình?`
-      ],
+      teacherQuestions: thematicQA[4].teacherQuestions,
       studentAct: `Học sinh chia sẻ dự định mang bài về khoe với bố mẹ; chủ động cất nắp bút sáp, dọn bàn học và rửa tay sạch sẽ.`,
-      studentAnswers: [
-        `Dạ con sẽ mang bức tranh này về treo ở góc học tập và tặng người thân ạ!`,
-        `Dạ con sẽ cất sáp màu cẩn thận vào khay hộp để không bị gãy và lau sạch bàn học ạ!`
-      ],
+      studentAnswers: thematicQA[4].studentAnswers,
       expectedProduct: `Ý thức thẩm mĩ gắn liền với đời sống, thái độ trân trọng sản phẩm và nếp sống ngăn nắp, sạch đẹp.`
     }
   ];
@@ -966,7 +943,12 @@ function buildUnit(u) {
         teacherQuestions: activities[0].teacherQuestions,
         studentAnswers: activities[0].studentAnswers,
         expectedProduct: activities[0].expectedProduct,
-        visualArt: visualArt,
+        visualArt: {
+          ...visualArt,
+          title: thematicImages.slideImages[0]?.title || visualArt.title,
+          imageUrl: thematicImages.slideImages[0]?.url || visualArt.imageUrl,
+          prompt: thematicImages.slideImages[0]?.prompt || visualArt.prompt
+        },
         badge: `${u.icon} 1. Khởi động`,
         interactiveAction: {
           type: 'quiz',
@@ -988,7 +970,12 @@ function buildUnit(u) {
         teacherQuestions: activities[1].teacherQuestions,
         studentAnswers: activities[1].studentAnswers,
         expectedProduct: activities[1].expectedProduct,
-        visualArt: visualArt,
+        visualArt: {
+          ...visualArt,
+          title: thematicImages.slideImages[1]?.title || visualArt.title,
+          imageUrl: thematicImages.slideImages[1]?.url || visualArt.imageUrl,
+          prompt: thematicImages.slideImages[1]?.prompt || visualArt.prompt
+        },
         badge: '🔍 2. Khám phá tri thức',
         interactiveAction: {
           type: 'explore',
@@ -1007,7 +994,12 @@ function buildUnit(u) {
         teacherQuestions: activities[2].teacherQuestions,
         studentAnswers: activities[2].studentAnswers,
         expectedProduct: activities[2].expectedProduct,
-        visualArt: visualArt,
+        visualArt: {
+          ...visualArt,
+          title: thematicImages.slideImages[2]?.title || visualArt.title,
+          imageUrl: thematicImages.slideImages[2]?.url || visualArt.imageUrl,
+          prompt: thematicImages.slideImages[2]?.prompt || visualArt.prompt
+        },
         badge: '💡 3. Thực hành sáng tạo',
         interactiveAction: {
           type: 'draw',
@@ -1025,7 +1017,12 @@ function buildUnit(u) {
         teacherQuestions: activities[3].teacherQuestions,
         studentAnswers: activities[3].studentAnswers,
         expectedProduct: activities[3].expectedProduct,
-        visualArt: visualArt,
+        visualArt: {
+          ...visualArt,
+          title: thematicImages.slideImages[3]?.title || visualArt.title,
+          imageUrl: thematicImages.slideImages[3]?.url || visualArt.imageUrl,
+          prompt: thematicImages.slideImages[3]?.prompt || visualArt.prompt
+        },
         badge: '🏅 4. Trưng bày & Đánh giá',
         interactiveAction: {
           type: 'critique',
@@ -1043,7 +1040,12 @@ function buildUnit(u) {
         teacherQuestions: activities[4].teacherQuestions,
         studentAnswers: activities[4].studentAnswers,
         expectedProduct: activities[4].expectedProduct,
-        visualArt: visualArt,
+        visualArt: {
+          ...visualArt,
+          title: thematicImages.slideImages[4]?.title || visualArt.title,
+          imageUrl: thematicImages.slideImages[4]?.url || visualArt.imageUrl,
+          prompt: thematicImages.slideImages[4]?.prompt || visualArt.prompt
+        },
         integrations: integrations,
         badge: '🚀 5. Vận dụng đời sống',
         interactiveAction: {

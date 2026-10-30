@@ -24,7 +24,9 @@ import {
   Camera,
   PenTool,
   Radio,
-  Eraser
+  Eraser,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { KET_NOI_TRI_THUC_DATA } from '../data/ketNoiTriThucCurriculum';
@@ -56,6 +58,32 @@ export default function ThematicTeacherChat({
   const [quizAnswered, setQuizAnswered] = useState(false);
   const [selectedQuizOption, setSelectedQuizOption] = useState(null);
   const [quizFeedback, setQuizFeedback] = useState(null);
+
+  // Student Answers Reveal State (Hidden by default, user clicks to reveal)
+  const [revealedAnswers, setRevealedAnswers] = useState({});
+  const [allAnswersRevealed, setAllAnswersRevealed] = useState(false);
+
+  // Visual Artwork Studio State (AI Flux high-res illustration vs SGK vector)
+  const [visualMode, setVisualMode] = useState('ai'); // 'ai' | 'vector'
+  const [aiImageSeed, setAiImageSeed] = useState(1);
+
+  const toggleRevealAnswer = (slideIdx, qIdx) => {
+    const key = `${slideIdx}_${qIdx}`;
+    setRevealedAnswers(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const toggleRevealAllAnswers = (slideIdx, count) => {
+    const nextState = !allAnswersRevealed;
+    setAllAnswersRevealed(nextState);
+    const updated = { ...revealedAnswers };
+    for (let i = 0; i < count; i++) {
+      updated[`${slideIdx}_${i}`] = nextState;
+    }
+    setRevealedAnswers(updated);
+  };
 
   // Chat State
   const [messages, setMessages] = useState([]);
@@ -131,6 +159,8 @@ export default function ThematicTeacherChat({
     setQuizAnswered(false);
     setSelectedQuizOption(null);
     setQuizFeedback(null);
+    setAllAnswersRevealed(false);
+    setRevealedAnswers({});
     clearPenCanvas();
 
     if (viewMode === 'powerpoint' && voiceEnabled && currentSlide?.teacherLecture) {
@@ -878,35 +908,70 @@ export default function ThematicTeacherChat({
                         ))}
                       </div>
 
-                      {/* ❓ DỰ KIẾN CÂU HỎI GỢI MỞ CỦA THẦY & 💬 CÂU TRẢ LỜI CỦA HỌC SINH */}
+                      {/* ❓ DỰ KIẾN CÂU HỎI GỢI MỞ CỦA THẦY & 💬 CÂU TRẢ LỜI CỦA HỌC SINH (ẨN MẶC ĐỊNH, BẤM ĐỂ XEM) */}
                       {currentSlide.teacherQuestions && currentSlide.teacherQuestions.length > 0 && (
                         <div className="bg-amber-50/80 rounded-2xl p-3.5 border-2 border-amber-200 flex flex-col gap-2.5 shadow-xs">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-amber-900 border-b border-amber-200/60 pb-1.5">
-                            <HelpCircle className="w-4 h-4 text-amber-600" />
-                            <span>Đàm Thoại Sư Phạm Giữa Thầy & Học Sinh:</span>
+                          <div className="flex items-center justify-between border-b border-amber-200/60 pb-1.5 flex-wrap gap-1">
+                            <span className="flex items-center gap-1.5 text-xs font-black text-amber-900">
+                              <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span>Đàm Thoại Sư Phạm Giữa Thầy & Học Sinh:</span>
+                            </span>
+                            <button
+                              onClick={() => toggleRevealAllAnswers(currentSlideIndex, currentSlide.teacherQuestions.length)}
+                              className="px-2.5 py-1 bg-amber-200/80 hover:bg-amber-300 text-amber-900 rounded-lg text-[10px] font-black transition flex items-center gap-1 shrink-0"
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>{allAnswersRevealed ? 'Ẩn tất cả câu trả lời' : 'Hiện tất cả câu trả lời'}</span>
+                            </button>
                           </div>
-                          {currentSlide.teacherQuestions.map((q, qIdx) => (
-                            <div key={qIdx} className="space-y-1.5">
-                              <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs">
-                                <span className="px-1.5 py-0.5 bg-amber-500 text-white font-black text-[10px] rounded shrink-0">
-                                  Thầy hỏi
-                                </span>
-                                <p className="text-xs font-black text-amber-950 leading-relaxed">
-                                  "{q}"
-                                </p>
-                              </div>
-                              {currentSlide.studentAnswers && currentSlide.studentAnswers[qIdx] && (
-                                <div className="flex items-start gap-2 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 ml-3 shadow-xs">
-                                  <span className="px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[10px] rounded shrink-0">
-                                    Bé thưa
+                          {currentSlide.teacherQuestions.map((q, qIdx) => {
+                            const isRevealed = revealedAnswers[`${currentSlideIndex}_${qIdx}`];
+                            const studentAnswer = currentSlide.studentAnswers && currentSlide.studentAnswers[qIdx];
+
+                            return (
+                              <div key={qIdx} className="space-y-1.5">
+                                <div className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs">
+                                  <span className="px-1.5 py-0.5 bg-amber-500 text-white font-black text-[10px] rounded shrink-0 mt-0.5">
+                                    Thầy hỏi
                                   </span>
-                                  <p className="text-xs font-extrabold text-emerald-950 leading-relaxed">
-                                    "{currentSlide.studentAnswers[qIdx]}"
+                                  <p className="text-xs font-black text-amber-950 leading-relaxed">
+                                    "{q}"
                                   </p>
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                                {studentAnswer && (
+                                  <div>
+                                    {isRevealed ? (
+                                      <div className="flex items-start justify-between gap-2 bg-emerald-50 p-2.5 rounded-xl border-2 border-emerald-300 ml-3 shadow-xs animate-in fade-in duration-200">
+                                        <div className="flex items-start gap-2">
+                                          <span className="px-1.5 py-0.5 bg-emerald-600 text-white font-black text-[10px] rounded shrink-0 mt-0.5">
+                                            Bé thưa
+                                          </span>
+                                          <p className="text-xs font-extrabold text-emerald-950 leading-relaxed">
+                                            "{studentAnswer}"
+                                          </p>
+                                        </div>
+                                        <button
+                                          onClick={() => toggleRevealAnswer(currentSlideIndex, qIdx)}
+                                          className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-200/60 hover:bg-emerald-200 px-2 py-0.5 rounded shrink-0 ml-1"
+                                          title="Ẩn câu trả lời này"
+                                        >
+                                          Ẩn ✕
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => toggleRevealAnswer(currentSlideIndex, qIdx)}
+                                        className="ml-3 py-1.5 px-3 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl font-bold text-[11px] flex items-center gap-1.5 transition shadow-xs hover:border-emerald-500"
+                                      >
+                                        <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span>Bấm để xem câu trả lời của học sinh</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
@@ -1078,21 +1143,63 @@ export default function ThematicTeacherChat({
                     {/* Cột Phải (5 Cột): KHUNG TRANH MẪU TRỰC QUAN SINH ĐỘNG THEO SGK */}
                     <div className="lg:col-span-5 flex flex-col gap-3">
                       <div className="bg-white rounded-3xl p-3.5 sm:p-4 border-4 border-amber-300 shadow-xl flex flex-col gap-3">
-                        <div className="flex items-center justify-between border-b border-amber-100 pb-2">
+                        <div className="flex items-center justify-between border-b border-amber-100 pb-2 flex-wrap gap-1">
                           <span className="text-xs font-black text-amber-900 flex items-center gap-1.5 truncate">
                             <Palette className="w-4 h-4 text-amber-600 shrink-0" />
                             <span className="truncate">{currentSlide.visualArt?.title || `Tranh Mẫu: ${selectedUnit.title}`}</span>
                           </span>
-                          <span className="text-[10px] font-black px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full border border-amber-200 shrink-0">
-                            Chuẩn SGK
-                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => setVisualMode('ai')}
+                              className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition ${
+                                visualMode === 'ai'
+                                  ? 'bg-amber-500 text-white shadow-xs'
+                                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                              }`}
+                            >
+                              🖼️ Tranh AI
+                            </button>
+                            <button
+                              onClick={() => setVisualMode('vector')}
+                              className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition ${
+                                visualMode === 'vector'
+                                  ? 'bg-amber-500 text-white shadow-xs'
+                                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                              }`}
+                            >
+                              📐 Nét SGK
+                            </button>
+                          </div>
                         </div>
 
-                        {/* Visual Artwork SVG Container */}
-                        <div 
-                          className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 shadow-inner flex items-center justify-center p-1"
-                          dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
-                        />
+                        {/* Visual Artwork Container (Dual Mode: High-Res AI & Clean Vector) */}
+                        {visualMode === 'ai' ? (
+                          <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-100 border-2 border-amber-300 shadow-inner group">
+                            <img
+                              src={`${(currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl || '').split('&seed=')[0]}&seed=${aiImageSeed}`}
+                              alt={currentSlide.visualArt?.title || selectedUnit.title}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              onError={() => setVisualMode('vector')}
+                            />
+                            <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[10px] font-black flex items-center gap-1 shadow">
+                              <Sparkles className="w-3 h-3 text-amber-300" />
+                              <span>AI Sống Động (Flux)</span>
+                            </div>
+                            <button
+                              onClick={() => setAiImageSeed(s => s + 1)}
+                              className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-amber-900 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-amber-200"
+                              title="Tạo phiên bản tranh AI khác"
+                            >
+                              <RotateCcw className="w-3 h-3 text-amber-600" />
+                              <span>Đổi ảnh AI</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 shadow-inner flex items-center justify-center p-1"
+                            dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
+                          />
+                        )}
 
                         {/* Caption & Visual Analysis */}
                         <p className="text-xs font-semibold text-gray-700 italic bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 leading-relaxed">

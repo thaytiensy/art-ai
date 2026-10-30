@@ -474,4 +474,11 @@ function getUnitSpecificIntegrations(u) {
   }
 }
 
-module.exports = { getUnitThemeKey, getUnitSpecificIntegrations };
+const { getThematicImagePrompts, getThematicActivitiesQA } = require('./thematicQAMapper.cjs');
+
+module.exports = { 
+  getUnitThemeKey, 
+  getUnitSpecificIntegrations,
+  getThematicImagePrompts,
+  getThematicActivitiesQA
+};
