@@ -5,134 +5,154 @@ function getThematicImagePrompts(u, theme) {
   const title = u.title;
   let basePrompt = '';
   let keyword = '';
+  let curatedUrl = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80';
 
   switch (theme) {
     case 'traffic_safety':
       basePrompt = 'an authentic hand-drawn watercolor and colored pencil illustration of Vietnamese elementary school students wearing safety helmets crossing street at zebra pedestrian crossing, traffic light shining green, smiling traffic police officer directing cars, sunny day in Hanoi, children textbook art style, warm vibrant colors, high detail';
       keyword = 'An Toàn Giao Thông';
+      curatedUrl = 'https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&q=80';
       break;
     case 'communal_house':
       basePrompt = 'traditional ancient Vietnamese communal house Dinh Lang fine art watercolor, curved tile roof with soaring roof corners, intricate wooden dragon carving relief, ancient banyan tree by village lotus pond, authentic Vietnamese cultural heritage, warm wood and terracotta tones, textbook illustration';
       keyword = 'Điêu Khắc Đình Làng';
+      curatedUrl = 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80';
       break;
     case 'folk_art':
       basePrompt = 'authentic traditional Vietnamese Dong Ho folk art woodblock print, depicting joyful children and auspicious animals, vibrant natural colors on textured handmade Do paper, crisp black carved lines, Vietnamese folklore aesthetic';
       keyword = 'Tranh Dân Gian Việt Nam';
+      curatedUrl = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80';
       break;
     case 'ethnic_patterns':
       basePrompt = 'traditional Vietnamese ethnic minority brocade textile art Tho Cam, vibrant indigo, ruby red and gold symmetrical geometric diamond patterns and zigzag embroidery, authentic cultural heritage, beautiful textile details';
       keyword = 'Hoa Văn Dân Tộc';
+      curatedUrl = 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80';
       break;
     case 'fruits':
       basePrompt = 'a delicious vibrant still life painting of tropical Vietnamese fruits, ripe yellow mango, green striped watermelon slice, sweet bananas, dragonfruit, wax crayon and gouache illustration for elementary school art class, colorful textured';
       keyword = 'Hoa Quả Tươi Ngon';
+      curatedUrl = 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&q=80';
       break;
     case 'family_meal':
       basePrompt = 'heartwarming watercolor painting of a loving three-generation Vietnamese family gathered around a cozy dinner table, warm smiles, bowls of steaming rice and soup, cozy home atmosphere, gentle lighting, children book illustration';
       keyword = 'Bữa Cơm Gia Đình';
+      curatedUrl = 'https://images.unsplash.com/photo-1547955922-261ba5f22e70?w=800&q=80';
       break;
     case 'family_portrait':
     case 'portrait_face':
       basePrompt = 'expressive and charming watercolor portrait of a happy Vietnamese elementary school student with sparkling bright eyes and warm friendly smile, colorful school uniform, soft pastel artistic background, gentle fine art';
       keyword = 'Chân Dung Biểu Cảm';
+      curatedUrl = 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80';
       break;
     case 'teachers_day':
       basePrompt = 'touching watercolor painting of Vietnamese elementary students joyfully presenting fresh flower bouquets and handmade cards to their beloved teacher on Teachers Day, sunny bright classroom, heartfelt gratitude';
       keyword = 'Biết Ơn Thầy Cô';
+      curatedUrl = 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&q=80';
       break;
     case 'school_life':
       basePrompt = 'cheerful hand-drawn watercolor illustration of a sunny Vietnamese elementary school yard, students in uniforms playing games under red blooming flamboyant phoenix trees, yellow school building, joyful school day';
       keyword = 'Mái Trường Em Yêu';
+      curatedUrl = 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80';
       break;
     case 'recycled_toy_animals':
       basePrompt = 'delightful craft art of cute animal toys made from recycled materials, cardboard tube penguin, plastic bottle piglet, egg carton turtle, placed on a colorful school desk, vibrant creative primary school craft';
       keyword = 'Đồ Chơi Sáng Tạo Tái Chế';
+      curatedUrl = 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800&q=80';
       break;
     case 'environment_green':
       basePrompt = 'inspiring watercolor poster of Vietnamese children planting young green trees in a school garden, blue watering can, fluttering butterflies, clean blue sky with bright sun, environmental protection art for kids';
       keyword = 'Môi Trường Xanh Sạch Đẹp';
+      curatedUrl = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80';
       break;
     case 'national_hero':
       basePrompt = 'inspirational monumental painting of Vietnamese national hero on horseback in ancient armor with flowing red cape, historical stone fortress under golden dawn sky, heroic monumental fine art for students';
       keyword = 'Hình Tượng Anh Hùng Dân Tộc';
+      curatedUrl = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80';
       break;
     case 'peace_world':
       basePrompt = 'beautiful fine art painting of joyful children of diverse cultures holding hands around a glowing planet Earth, a pure white peace dove soaring across a vibrant rainbow sky, message of global peace and friendship';
       keyword = 'Vì Một Thế Giới Hòa Bình';
+      curatedUrl = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80';
       break;
     case 'noble_deeds':
       basePrompt = 'heartwarming illustration of good everyday deeds: a smiling Vietnamese elementary student gently holding the hand of an elderly woman helping her cross the street, warm golden sunlight, inspiring moral education art';
       keyword = 'Việc Làm Bình Dị Cao Quý';
+      curatedUrl = 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=800&q=80';
       break;
     case 'landscape_homeland':
       basePrompt = 'breathtaking watercolor landscape of peaceful Vietnamese countryside, golden ripe terraced rice fields in Northwest mountains, tranquil river with small wooden boat, bamboo grove, lush nature, peaceful rural beauty';
       keyword = 'Cảnh Sắc Quê Hương';
+      curatedUrl = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80';
       break;
     case 'dots_ladybug':
       basePrompt = 'delightful pointillism artwork for children, a bright red ladybug beetle with distinct glossy black round dots resting on a fresh green dewdrop leaf, colorful tiny dot patterns in background, cute gouache art';
       keyword = 'Sáng Tạo Từ Chấm Màu';
+      curatedUrl = 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=800&q=80';
       break;
     case 'lines_rhythm':
       basePrompt = 'creative rhythmic children art composition with expressive wavy lines, spiral coils and straight patterns forming rolling ocean waves and a playful paper boat, bright harmonious pastel colors, expressive line art';
       keyword = 'Sự Thú Vị Của Nét';
+      curatedUrl = 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&q=80';
       break;
     case 'geometric_house':
       basePrompt = 'charming children book watercolor illustration of a dreamy colorful house built from basic geometric shapes: triangle roof, rectangle walls, square windows, smiling yellow circle sun, lush green garden';
       keyword = 'Hình Cơ Bản Tạo Hình';
+      curatedUrl = 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80';
       break;
     case 'color_wheel':
       basePrompt = 'an artistic watercolor painting showing the magic of primary colors blending into secondary colors, wooden art palette with bright red, yellow, and blue swirling into orange, green, purple, soft magical rainbow glow';
       keyword = 'Sắc Màu Kì Diệu';
+      curatedUrl = 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&q=80';
       break;
     case 'geometric_3d_forms':
       basePrompt = 'educational artistic illustration of 3D geometric forms: colorful wooden cube, sphere, cylinder, and cone arranged on an artist table with soft shadows, pastel lighting, creative art lesson for kids';
       keyword = 'Vẻ Đẹp Của Khối';
+      curatedUrl = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
       break;
     case 'art_materials':
       basePrompt = 'creative art supplies on a wooden desk: vibrant multicolored modeling clay, dry autumn leaves, colored EVA foam sheets, safety craft scissors and sketchbook, inspiring art workshop for children';
       keyword = 'Vật Liệu Thực Hành Sáng Tạo';
+      curatedUrl = 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80';
       break;
     case 'art_supplies':
     default:
       basePrompt = `beautiful hand-drawn artistic children textbook illustration about ${title}, watercolor and colored pencil style on textured paper, harmonious vibrant colors, inspiring and high quality educational art`;
       keyword = title;
+      curatedUrl = 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80';
       break;
   }
-
-  const encoded = encodeURIComponent(basePrompt);
-  const mainImageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=700&height=500&model=flux&nologo=true`;
 
   const slidePrompts = [
     {
       title: `Khởi động: Cảm hứng về ${keyword}`,
       prompt: basePrompt + ', wide view, warm inviting atmosphere',
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(basePrompt + ', inspiring opener')}` + '?width=700&height=500&model=flux&nologo=true&seed=11'
+      url: curatedUrl
     },
     {
       title: `Khám phá chi tiết: Nét đẹp của ${keyword}`,
       prompt: basePrompt + ', close-up macro details, fine art textures',
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(basePrompt + ', detailed fine art close-up')}` + '?width=700&height=500&model=flux&nologo=true&seed=22'
+      url: curatedUrl
     },
     {
       title: `Thực hành: Các bước sáng tạo ${keyword}`,
       prompt: basePrompt + ', drawing demonstration step by step, student workspace',
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(basePrompt + ', student in progress artwork demonstration')}` + '?width=700&height=500&model=flux&nologo=true&seed=33'
+      url: curatedUrl
     },
     {
       title: `Triển lãm: Góc trưng bày tác phẩm ${keyword}`,
       prompt: basePrompt + ', gallery exhibition display of finished colorful paintings',
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(basePrompt + ', school art exhibition wall showcase')}` + '?width=700&height=500&model=flux&nologo=true&seed=44'
+      url: curatedUrl
     },
     {
       title: `Vận dụng: Lan tỏa vẻ đẹp ${keyword} vào đời sống`,
       prompt: basePrompt + ', framed artwork decorating student study desk, beautiful gift',
-      url: `https://image.pollinations.ai/prompt/${encodeURIComponent(basePrompt + ', framed artwork placed in cozy modern room')}` + '?width=700&height=500&model=flux&nologo=true&seed=55'
+      url: curatedUrl
     }
   ];
 
   return {
     mainPrompt: basePrompt,
-    mainImageUrl: mainImageUrl,
+    mainImageUrl: curatedUrl,
     slideImages: slidePrompts
   };
 }

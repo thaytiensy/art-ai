@@ -26,7 +26,16 @@ import {
   Radio,
   Eraser,
   Eye,
-  EyeOff
+  EyeOff,
+  Tv,
+  Smartphone,
+  Mouse,
+  Keyboard,
+  ZoomIn,
+  ZoomOut,
+  X,
+  Sliders,
+  Monitor
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { KET_NOI_TRI_THUC_DATA } from '../data/ketNoiTriThucCurriculum';
@@ -63,9 +72,23 @@ export default function ThematicTeacherChat({
   const [revealedAnswers, setRevealedAnswers] = useState({});
   const [allAnswersRevealed, setAllAnswersRevealed] = useState(false);
 
-  // Visual Artwork Studio State (AI Flux high-res illustration vs SGK vector)
+  // Multi-Device & Presentation Controls State (Smart TV, Mobile, Mouse, Clicker)
+  const [isTvMode, setIsTvMode] = useState(false);
+  const [isBlackScreen, setIsBlackScreen] = useState(false);
+  const [isWhiteScreen, setIsWhiteScreen] = useState(false);
+  const [showDeviceControllerModal, setShowDeviceControllerModal] = useState(false);
+  const [zoomArtworkModal, setZoomArtworkModal] = useState(false);
+  const [deviceTab, setDeviceTab] = useState('tv'); // 'tv' | 'mobile' | 'mouse' | 'keyboard'
+
+  // Visual Artwork Studio State (High-res artwork vs SGK vector)
   const [visualMode, setVisualMode] = useState('ai'); // 'ai' | 'vector'
   const [aiImageSeed, setAiImageSeed] = useState(1);
+  const [slideImageLoaded, setSlideImageLoaded] = useState(false);
+  const [slideImageError, setSlideImageError] = useState(false);
+
+  // Device Input Refs (Touch Swipe & Mouse Wheel)
+  const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
+  const lastWheelTimeRef = useRef(0);
 
   const toggleRevealAnswer = (slideIdx, qIdx) => {
     const key = `${slideIdx}_${qIdx}`;
@@ -154,6 +177,25 @@ export default function ThematicTeacherChat({
     }
   }, [selectedUnit]);
 
+  // Next / Prev Slide & Direct Navigation
+  const goToSlide = (idx) => {
+    if (idx >= 0 && idx < slides.length) {
+      setCurrentSlideIndex(idx);
+    }
+  };
+
+  const goToNextSlide = () => {
+    if (currentSlideIndex < slides.length - 1) {
+      setCurrentSlideIndex(prev => prev + 1);
+    }
+  };
+
+  const goToPrevSlide = () => {
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex(prev => prev - 1);
+    }
+  };
+
   // When switching slides, auto speak lecture if voice is enabled
   useEffect(() => {
     setQuizAnswered(false);
@@ -161,6 +203,10 @@ export default function ThematicTeacherChat({
     setQuizFeedback(null);
     setAllAnswersRevealed(false);
     setRevealedAnswers({});
+    setSlideImageLoaded(false);
+    setSlideImageError(false);
+    setIsBlackScreen(false);
+    setIsWhiteScreen(false);
     clearPenCanvas();
 
     if (viewMode === 'powerpoint' && voiceEnabled && currentSlide?.teacherLecture) {
@@ -175,45 +221,164 @@ export default function ThematicTeacherChat({
     }
   }, [currentSlideIndex, selectedUnit, viewMode]);
 
-  // Keyboard navigation for real PowerPoint experience
+  // Universal Keyboard, Remote & Clicker Navigation Engine
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't intercept if user is typing in chat or input
+      // Don't intercept if user is typing in chat or text inputs
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
 
-      if (e.key === 'ArrowRight' || e.key === ' ') {
+      const key = e.key;
+      const code = e.code;
+      const keyCode = e.keyCode;
+
+      // 1. Next slide: Right arrow, PageDown, Space, Enter, NumpadEnter
+      if (key === 'ArrowRight' || key === 'PageDown' || key === ' ' || code === 'NumpadEnter') {
         e.preventDefault();
         goToNextSlide();
-      } else if (e.key === 'ArrowLeft') {
+      }
+      // 2. Previous slide: Left arrow, PageUp, Backspace
+      else if (key === 'ArrowLeft' || key === 'PageUp' || key === 'Backspace') {
         e.preventDefault();
         goToPrevSlide();
-      } else if (e.key.toLowerCase() === 'f') {
+      }
+      // 3. Number keys 1 - 5: Direct Jump to Activity
+      else if (['1', '2', '3', '4', '5'].includes(key)) {
+        const targetIndex = parseInt(key, 10) - 1;
+        if (targetIndex < slides.length) {
+          goToSlide(targetIndex);
+        }
+      }
+      // 4. Toggle Student Answers: 'A' key, or Green TV Remote button (ColorF1Green / 404)
+      else if (key.toLowerCase() === 'a' || key === 'ColorF1Green' || keyCode === 404) {
+        e.preventDefault();
+        toggleRevealAllAnswers(currentSlideIndex, currentSlide?.teacherQuestions?.length || 0);
+      }
+      // 5. Toggle Teacher Speech: 'V' / 'S' key, or Red TV Remote button (ColorF0Red / 403)
+      else if (key.toLowerCase() === 'v' || key.toLowerCase() === 's' || key === 'ColorF0Red' || keyCode === 403) {
+        e.preventDefault();
+        toggleCurrentSlideSpeech();
+      }
+      // 6. Toggle Visual Mode (Photo vs Vector): 'M' / 'I' key, or Yellow TV Remote button (ColorF2Yellow / 405)
+      else if (key.toLowerCase() === 'm' || key.toLowerCase() === 'i' || key === 'ColorF2Yellow' || keyCode === 405) {
+        e.preventDefault();
+        setVisualMode(prev => (prev === 'ai' ? 'vector' : 'ai'));
+      }
+      // 7. Fullscreen & Smart TV Mode: 'F' key, 'T' key, or Blue TV Remote button (ColorF3Blue / 406)
+      else if (key.toLowerCase() === 'f' || key === 'ColorF3Blue' || keyCode === 406) {
+        e.preventDefault();
         setIsFullscreen(prev => !prev);
-      } else if (e.key.toLowerCase() === 'l') {
+      } else if (key.toLowerCase() === 't') {
+        e.preventDefault();
+        setIsTvMode(prev => !prev);
+      }
+      // 8. Laser pointer: 'L' key
+      else if (key.toLowerCase() === 'l') {
         setIsLaserOn(prev => !prev);
         setIsPenOn(false);
-      } else if (e.key.toLowerCase() === 'p') {
+      }
+      // 9. Interactive Pen: 'P' key
+      else if (key.toLowerCase() === 'p') {
         setIsPenOn(prev => !prev);
         setIsLaserOn(false);
-      } else if (e.key === 'Escape' && isFullscreen) {
-        setIsFullscreen(false);
+      }
+      // 10. Clear pen drawing: 'C' key
+      else if (key.toLowerCase() === 'c') {
+        clearPenCanvas();
+      }
+      // 11. Black screen mode ('B' key or Period '.' on wireless clicker)
+      else if (key.toLowerCase() === 'b' || key === '.') {
+        e.preventDefault();
+        setIsBlackScreen(prev => !prev);
+        setIsWhiteScreen(false);
+      }
+      // 12. White screen whiteboard mode ('W' key or Comma ',')
+      else if (key.toLowerCase() === 'w' || key === ',') {
+        e.preventDefault();
+        setIsWhiteScreen(prev => !prev);
+        setIsBlackScreen(false);
+      }
+      // 13. Zoom artwork modal: 'Z' key
+      else if (key.toLowerCase() === 'z') {
+        setZoomArtworkModal(prev => !prev);
+      }
+      // 14. Escape key
+      else if (key === 'Escape') {
+        if (isBlackScreen) setIsBlackScreen(false);
+        else if (isWhiteScreen) setIsWhiteScreen(false);
+        else if (zoomArtworkModal) setZoomArtworkModal(false);
+        else if (showDeviceControllerModal) setShowDeviceControllerModal(false);
+        else if (isFullscreen) setIsFullscreen(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSlideIndex, slides.length, isFullscreen]);
+  }, [
+    currentSlideIndex, 
+    slides.length, 
+    isFullscreen, 
+    isSpeaking, 
+    currentSlide, 
+    allAnswersRevealed, 
+    isBlackScreen, 
+    isWhiteScreen, 
+    zoomArtworkModal, 
+    showDeviceControllerModal
+  ]);
 
-  // Next / Prev Slide
-  const goToNextSlide = () => {
-    if (currentSlideIndex < slides.length - 1) {
-      setCurrentSlideIndex(prev => prev + 1);
+  // Mouse Wheel navigation (Wireless & Wired Mouse)
+  const handleWheel = (e) => {
+    // Only scroll slides if not hovering over a scrollable text container
+    const isScrollable = e.target.closest('.overflow-y-auto');
+    if (isScrollable) return;
+
+    const now = Date.now();
+    if (now - lastWheelTimeRef.current < 250) return;
+
+    if (e.deltaY > 25) {
+      lastWheelTimeRef.current = now;
+      goToNextSlide();
+    } else if (e.deltaY < -25) {
+      lastWheelTimeRef.current = now;
+      goToPrevSlide();
     }
   };
 
-  const goToPrevSlide = () => {
-    if (currentSlideIndex > 0) {
-      setCurrentSlideIndex(prev => prev - 1);
+  // Mouse side buttons (Wireless Mouse Back/Forward)
+  const handleMouseSideButtons = (e) => {
+    if (e.button === 3) {
+      e.preventDefault();
+      goToPrevSlide();
+    } else if (e.button === 4) {
+      e.preventDefault();
+      goToNextSlide();
+    }
+  };
+
+  // Touch Swipe navigation (Smartphones & Tablets)
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        time: Date.now()
+      };
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.changedTouches && e.changedTouches[0]) {
+      const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+      const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+      const dt = Date.now() - touchStartRef.current.time;
+
+      if (Math.abs(dx) > 50 && Math.abs(dy) < 80 && dt < 600) {
+        if (dx < 0) {
+          goToNextSlide();
+        } else {
+          goToPrevSlide();
+        }
+      }
     }
   };
 
@@ -786,24 +951,81 @@ export default function ThematicTeacherChat({
                     );
                   })}
 
-                  {/* Fullscreen F5 Toggle */}
-                  <button
-                    onClick={() => setIsFullscreen(prev => !prev)}
-                    className="p-1.5 rounded-xl bg-black/20 hover:bg-black/30 text-white transition ml-auto"
-                    title={isFullscreen ? 'Thu nhỏ (Esc)' : 'Toàn màn hình trình chiếu (F5)'}
-                  >
-                    {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                  </button>
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    {/* Nút Chế độ Smart TV & Màn hình lớn */}
+                    <button
+                      onClick={() => setIsTvMode(prev => !prev)}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-black text-xs transition ${
+                        isTvMode 
+                          ? 'bg-amber-300 text-amber-950 shadow-md ring-2 ring-white' 
+                          : 'bg-black/20 hover:bg-black/30 text-white'
+                      }`}
+                      title="Chế độ Smart TV & Màn hình lớn (Phím tắt: T)"
+                    >
+                      <Tv className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Smart TV</span>
+                    </button>
+
+                    {/* Nút Bảng Điều Khiển Đa Thiết Bị */}
+                    <button
+                      onClick={() => setShowDeviceControllerModal(true)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-black/20 hover:bg-black/30 text-white font-black text-xs transition"
+                      title="Điều khiển ứng dụng (Smart TV, Điện thoại, Chuột, Bàn phím)"
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Điều Khiển</span>
+                    </button>
+
+                    {/* Fullscreen F5 Toggle */}
+                    <button
+                      onClick={() => setIsFullscreen(prev => !prev)}
+                      className="p-1.5 rounded-xl bg-black/20 hover:bg-black/30 text-white transition"
+                      title={isFullscreen ? 'Thu nhỏ (Esc)' : 'Toàn màn hình trình chiếu (F5/F)'}
+                    >
+                      {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
-                {/* 2. Slide Screen Canvas Area */}
+                {/* 2. Slide Screen Canvas Area (Hỗ trợ Vuốt Điện Thoại, Cuộn Chuột, TV D-Pad) */}
                 <div 
                   ref={slideContainerRef}
                   onMouseMove={handleSlideMouseMove}
-                  onMouseDown={handlePenMouseDown}
+                  onMouseDown={(e) => {
+                    handleMouseSideButtons(e);
+                    handlePenMouseDown(e);
+                  }}
                   onMouseUp={handlePenMouseUp}
-                  className="relative p-6 sm:p-10 flex-1 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/70 flex flex-col justify-between select-none overflow-hidden"
+                  onWheel={handleWheel}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  className={`relative p-6 sm:p-10 flex-1 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/70 flex flex-col justify-between select-none overflow-hidden transition-all ${
+                    isTvMode ? 'text-base sm:text-lg ring-4 ring-amber-400' : ''
+                  }`}
                 >
+                  {/* Black Screen Layer (B key / Clicker button) */}
+                  {isBlackScreen && (
+                    <div 
+                      onClick={() => setIsBlackScreen(false)}
+                      className="absolute inset-0 bg-black/95 z-40 flex flex-col items-center justify-center text-white cursor-pointer select-none animate-in fade-in"
+                    >
+                      <span className="text-5xl mb-3">👁️</span>
+                      <h3 className="text-2xl font-black tracking-wide">Cả Lớp Hướng Lên Thầy Giảng Bài</h3>
+                      <p className="text-xs text-gray-400 mt-2">Bấm phím 'B' hoặc nhấp chuột để tiếp tục bài học</p>
+                    </div>
+                  )}
+
+                  {/* White Screen Layer (W key / Whiteboard) */}
+                  {isWhiteScreen && (
+                    <div 
+                      onClick={() => setIsWhiteScreen(false)}
+                      className="absolute inset-0 bg-white z-40 flex flex-col items-center justify-center text-gray-800 cursor-pointer select-none animate-in fade-in border-4 border-blue-400"
+                    >
+                      <span className="text-5xl mb-3">📝</span>
+                      <h3 className="text-2xl font-black text-blue-900">Bảng Trắng Tương Tác Sư Phạm</h3>
+                      <p className="text-xs text-gray-500 mt-2">Bấm phím 'W' hoặc nhấp chuột để quay lại bài giảng</p>
+                    </div>
+                  )}
                   {/* Virtual Pen Canvas Layer */}
                   <canvas
                     ref={penCanvasRef}
@@ -1150,14 +1372,18 @@ export default function ThematicTeacherChat({
                           </span>
                           <div className="flex items-center gap-1 shrink-0">
                             <button
-                              onClick={() => setVisualMode('ai')}
+                              onClick={() => {
+                                setVisualMode('ai');
+                                setSlideImageError(false);
+                              }}
                               className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition ${
                                 visualMode === 'ai'
                                   ? 'bg-amber-500 text-white shadow-xs'
                                   : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                               }`}
+                              title="Xem tranh minh họa nghệ thuật thực tế (Phím: M)"
                             >
-                              🖼️ Tranh AI
+                              🖼️ Tranh Ảnh
                             </button>
                             <button
                               onClick={() => setVisualMode('vector')}
@@ -1166,40 +1392,82 @@ export default function ThematicTeacherChat({
                                   ? 'bg-amber-500 text-white shadow-xs'
                                   : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                               }`}
+                              title="Xem tranh nét vẽ SGK vector chuẩn (Phím: M)"
                             >
                               📐 Nét SGK
+                            </button>
+                            <button
+                              onClick={() => setZoomArtworkModal(true)}
+                              className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
+                              title="Phóng to tranh toàn màn hình (Phím: Z)"
+                            >
+                              <ZoomIn className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
 
-                        {/* Visual Artwork Container (Dual Mode: High-Res AI & Clean Vector) */}
-                        {visualMode === 'ai' ? (
-                          <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-100 border-2 border-amber-300 shadow-inner group">
-                            <img
-                              src={`${(currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl || '').split('&seed=')[0]}&seed=${aiImageSeed}`}
-                              alt={currentSlide.visualArt?.title || selectedUnit.title}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              onError={() => setVisualMode('vector')}
-                            />
-                            <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[10px] font-black flex items-center gap-1 shadow">
-                              <Sparkles className="w-3 h-3 text-amber-300" />
-                              <span>AI Sống Động (Flux)</span>
+                        {/* Visual Artwork Container with GUARANTEED Display (Never blank / broken) */}
+                        <div 
+                          className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 border-2 border-amber-300 shadow-inner group cursor-pointer"
+                          onDoubleClick={() => setZoomArtworkModal(true)}
+                          title="Nhấp đúp chuột để phóng to tranh toàn màn hình"
+                        >
+                          {visualMode === 'ai' && !slideImageError ? (
+                            <>
+                              <img
+                                src={currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl}
+                                alt={currentSlide.visualArt?.title || selectedUnit.title}
+                                className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+                                  slideImageLoaded ? 'opacity-100' : 'opacity-0'
+                                }`}
+                                onLoad={() => setSlideImageLoaded(true)}
+                                onError={() => setSlideImageError(true)}
+                              />
+                              {!slideImageLoaded && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-amber-50/90 text-amber-900 text-xs font-bold gap-2">
+                                  <Sparkles className="w-4 h-4 animate-spin text-amber-500" />
+                                  <span>Đang tải tranh mẫu sắc nét...</span>
+                                </div>
+                              )}
+                              <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[10px] font-black flex items-center gap-1 shadow">
+                                <Sparkles className="w-3 h-3 text-amber-300" />
+                                <span>Tranh Minh Họa Sống Động</span>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setZoomArtworkModal(true);
+                                }}
+                                className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-gray-800 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-gray-200"
+                              >
+                                <ZoomIn className="w-3 h-3 text-amber-600" />
+                                <span>Phóng to</span>
+                              </button>
+                            </>
+                          ) : (
+                            /* Guaranteed Vector SVG Fallback (100% Instant, Zero Failure) */
+                            <div className="w-full h-full flex flex-col items-center justify-center relative">
+                              <div 
+                                className="w-full h-full p-1 flex items-center justify-center"
+                                dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
+                              />
+                              <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-amber-600 text-white text-[10px] font-black flex items-center gap-1 shadow">
+                                <Palette className="w-3 h-3" />
+                                <span>Nét Vẽ SGK Vector</span>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setZoomArtworkModal(true);
+                                }}
+                                className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-gray-800 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-gray-200"
+                              >
+                                <ZoomIn className="w-3 h-3 text-amber-600" />
+                                <span>Phóng to</span>
+                              </button>
                             </div>
-                            <button
-                              onClick={() => setAiImageSeed(s => s + 1)}
-                              className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-amber-900 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-amber-200"
-                              title="Tạo phiên bản tranh AI khác"
-                            >
-                              <RotateCcw className="w-3 h-3 text-amber-600" />
-                              <span>Đổi ảnh AI</span>
-                            </button>
-                          </div>
-                        ) : (
-                          <div 
-                            className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 shadow-inner flex items-center justify-center p-1"
-                            dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
-                          />
-                        )}
+                          )}
+                        </div>
 
                         {/* Caption & Visual Analysis */}
                         <p className="text-xs font-semibold text-gray-700 italic bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 leading-relaxed">
@@ -1285,40 +1553,432 @@ export default function ThematicTeacherChat({
                   </div>
                 </div>
 
-                {/* 5. Slide Control Footer */}
+                {/* 5. Slide Control Footer (Đa Phương Thức Điều Khiển) */}
                 <div className="bg-gray-100 p-3 sm:p-4 border-t border-gray-200 flex items-center justify-between flex-wrap gap-2">
-                  <button
-                    onClick={goToPrevSlide}
-                    disabled={currentSlideIndex === 0}
-                    className="flex items-center gap-1 px-4 py-2 bg-white text-gray-700 disabled:opacity-40 font-black rounded-xl text-xs sm:text-sm shadow-sm hover:bg-gray-50 transition"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span>Hoạt Động Trước</span>
-                  </button>
-
-                  {/* Slide Step Indicator Dots */}
                   <div className="flex items-center gap-2">
-                    {slides.map((s, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCurrentSlideIndex(idx)}
-                        className={`h-2.5 rounded-full transition-all ${
-                          currentSlideIndex === idx
-                            ? 'w-8 bg-orange-500'
-                            : 'w-2.5 bg-gray-300 hover:bg-gray-400'
-                        }`}
-                        title={`Đến Hoạt Động ${idx + 1}`}
-                      />
-                    ))}
+                    <button
+                      onClick={goToPrevSlide}
+                      disabled={currentSlideIndex === 0}
+                      className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white text-gray-700 disabled:opacity-40 font-black rounded-xl text-xs sm:text-sm shadow-sm hover:bg-gray-50 transition"
+                      title="Hoạt động trước (Phím: Mũi tên trái / PageUp / Vuốt phải)"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Trước</span>
+                    </button>
+
+                    {/* Quick Jump Buttons: 1, 2, 3, 4, 5 */}
+                    <div className="hidden md:flex items-center gap-1">
+                      {slides.map((s, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => goToSlide(idx)}
+                          className={`w-7 h-7 rounded-lg text-xs font-black transition flex items-center justify-center ${
+                            currentSlideIndex === idx
+                              ? 'bg-orange-500 text-white shadow-sm'
+                              : 'bg-white text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title={`Nhảy tới Hoạt Động ${idx + 1} (Phím: ${idx + 1})`}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
+                  {/* Multi-Device Hint Bar */}
+                  <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-white/80 rounded-xl border border-gray-200 text-[11px] font-bold text-gray-600 shadow-xs">
+                    <span className="flex items-center gap-1">
+                      <Tv className="w-3.5 h-3.5 text-blue-600" /> TV: D-Pad / Màu
+                    </span>
+                    <span className="text-gray-300">•</span>
+                    <span className="flex items-center gap-1">
+                      <Smartphone className="w-3.5 h-3.5 text-emerald-600" /> Vuốt Cảm Ứng
+                    </span>
+                    <span className="text-gray-300">•</span>
+                    <span className="flex items-center gap-1">
+                      <Mouse className="w-3.5 h-3.5 text-purple-600" /> Cuộn Chuột
+                    </span>
+                    <span className="text-gray-300">•</span>
+                    <span className="flex items-center gap-1">
+                      <Keyboard className="w-3.5 h-3.5 text-amber-600" /> Phím 1-5 / Space
+                    </span>
+                  </div>
+
+                  {/* Next Button */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleRevealAllAnswers(currentSlideIndex, currentSlide?.teacherQuestions?.length || 0)}
+                      className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-xl font-black text-xs transition flex items-center gap-1"
+                      title="Hiện/Ẩn câu trả lời học sinh (Phím: A)"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="hidden sm:inline">{allAnswersRevealed ? 'Ẩn Đáp Án' : 'Hiện Đáp Án'}</span>
+                    </button>
+
+                    <button
+                      onClick={goToNextSlide}
+                      disabled={currentSlideIndex === slides.length - 1}
+                      className="flex items-center gap-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-40 font-black rounded-xl text-xs sm:text-sm shadow transition"
+                      title="Hoạt động tiếp theo (Phím: Mũi tên phải / PageDown / Space / Vuốt trái)"
+                    >
+                      <span>Tiếp</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* FLOATING MOBILE DOCK (DÀNH CHO ĐIỆN THOẠI & TABLET) */}
+          {viewMode === 'powerpoint' && (
+            <div className="fixed bottom-3 left-1/2 transform -translate-x-1/2 z-40 lg:hidden bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 shadow-2xl flex items-center gap-2 text-white">
+              <button
+                onClick={goToPrevSlide}
+                disabled={currentSlideIndex === 0}
+                className="p-2 rounded-xl bg-white/10 disabled:opacity-30 active:scale-95 transition"
+                title="Trước"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <span className="text-xs font-black px-2">
+                {currentSlideIndex + 1}/{slides.length}
+              </span>
+
+              <button
+                onClick={goToNextSlide}
+                disabled={currentSlideIndex === slides.length - 1}
+                className="p-2 rounded-xl bg-orange-500 disabled:opacity-30 active:scale-95 transition"
+                title="Tiếp"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <div className="h-4 w-px bg-white/20 mx-1" />
+
+              <button
+                onClick={toggleCurrentSlideSpeech}
+                className={`p-2 rounded-xl transition ${isSpeaking ? 'bg-rose-500' : 'bg-white/10'}`}
+                title="Nghe Thầy giảng"
+              >
+                {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+
+              <button
+                onClick={() => toggleRevealAllAnswers(currentSlideIndex, currentSlide?.teacherQuestions?.length || 0)}
+                className="p-2 rounded-xl bg-white/10 active:scale-95 transition"
+                title="Hiện câu trả lời"
+              >
+                <Eye className="w-4 h-4 text-emerald-400" />
+              </button>
+
+              <button
+                onClick={() => setZoomArtworkModal(true)}
+                className="p-2 rounded-xl bg-white/10 active:scale-95 transition"
+                title="Phóng to tranh"
+              >
+                <ZoomIn className="w-4 h-4 text-amber-400" />
+              </button>
+            </div>
+          )}
+
+          {/* MODAL 1: FULLSCREEN ARTWORK LIGHTBOX ZOOM (PHÓNG TO TRANH MẪU TRÊN TV / MÁY CHIẾU) */}
+          {zoomArtworkModal && (
+            <div 
+              onClick={() => setZoomArtworkModal(false)}
+              className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 select-none animate-in fade-in cursor-zoom-out"
+            >
+              <div 
+                onClick={(e) => e.stopPropagation()} 
+                className="relative max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-400 cursor-default"
+              >
+                <div className="p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-5 h-5 text-amber-200" />
+                    <h4 className="font-black text-sm sm:text-base">
+                      {currentSlide.visualArt?.title || selectedUnit.title}
+                    </h4>
+                  </div>
                   <button
-                    onClick={goToNextSlide}
-                    disabled={currentSlideIndex === slides.length - 1}
-                    className="flex items-center gap-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-40 font-black rounded-xl text-xs sm:text-sm shadow transition"
+                    onClick={() => setZoomArtworkModal(false)}
+                    className="p-1.5 rounded-xl bg-black/20 hover:bg-black/30 text-white transition"
                   >
-                    <span>Hoạt Động Tiếp</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="w-full aspect-[16/10] bg-amber-50 flex items-center justify-center overflow-hidden p-2">
+                  {visualMode === 'ai' && !slideImageError ? (
+                    <img
+                      src={currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl}
+                      alt={selectedUnit.title}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div 
+                      className="w-full h-full p-4 flex items-center justify-center"
+                      dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
+                    />
+                  )}
+                </div>
+
+                <div className="p-4 bg-amber-50/90 border-t border-amber-200 flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-xs text-gray-700 italic font-semibold max-w-lg">
+                    {currentSlide.visualArt?.caption || selectedUnit.visualArt?.caption}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setVisualMode(v => v === 'ai' ? 'vector' : 'ai')}
+                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow transition"
+                    >
+                      {visualMode === 'ai' ? 'Chuyển Nét SGK' : 'Chuyển Tranh Ảnh'}
+                    </button>
+                    <button
+                      onClick={() => setZoomArtworkModal(false)}
+                      className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl text-xs font-black transition"
+                    >
+                      Đóng (Esc)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 2: BẢNG HƯỚNG DẪN & ĐIỀU KHIỂN ĐA THIẾT BỊ (UNIVERSAL REMOTE CONTROLLER) */}
+          {showDeviceControllerModal && (
+            <div 
+              onClick={() => setShowDeviceControllerModal(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 select-none animate-in fade-in"
+            >
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-orange-300"
+              >
+                {/* Header */}
+                <div className="p-4 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-5 h-5 text-amber-200" />
+                    <div>
+                      <h4 className="font-black text-sm sm:text-base">
+                        Bộ Điều Khiển Ứng Dụng Đa Thiết Bị
+                      </h4>
+                      <p className="text-[11px] text-amber-100">
+                        Tương thích Smart TV, Điện Thoại, Chuột Không Dây, Bàn Phím & Bút Trình Chiếu
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowDeviceControllerModal(false)}
+                    className="p-1.5 rounded-xl bg-black/20 hover:bg-black/30 text-white transition"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-gray-200 bg-gray-50 text-xs font-black">
+                  <button
+                    onClick={() => setDeviceTab('tv')}
+                    className={`flex-1 py-3 flex items-center justify-center gap-1.5 transition ${
+                      deviceTab === 'tv' ? 'border-b-2 border-orange-500 text-orange-600 bg-white' : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Tv className="w-4 h-4" />
+                    <span>Smart TV</span>
+                  </button>
+                  <button
+                    onClick={() => setDeviceTab('mobile')}
+                    className={`flex-1 py-3 flex items-center justify-center gap-1.5 transition ${
+                      deviceTab === 'mobile' ? 'border-b-2 border-orange-500 text-orange-600 bg-white' : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>Điện Thoại</span>
+                  </button>
+                  <button
+                    onClick={() => setDeviceTab('mouse')}
+                    className={`flex-1 py-3 flex items-center justify-center gap-1.5 transition ${
+                      deviceTab === 'mouse' ? 'border-b-2 border-orange-500 text-orange-600 bg-white' : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Mouse className="w-4 h-4" />
+                    <span>Chuột Không Dây</span>
+                  </button>
+                  <button
+                    onClick={() => setDeviceTab('keyboard')}
+                    className={`flex-1 py-3 flex items-center justify-center gap-1.5 transition ${
+                      deviceTab === 'keyboard' ? 'border-b-2 border-orange-500 text-orange-600 bg-white' : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Keyboard className="w-4 h-4" />
+                    <span>Bàn Phím / Bút Clicker</span>
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="p-6 space-y-4 max-h-[420px] overflow-y-auto text-xs text-gray-700">
+                  {deviceTab === 'tv' && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200">
+                        <b className="text-blue-900 block mb-1 text-sm">📺 Điều Khiển Bằng Remote Smart TV (Samsung, LG, Android TV):</b>
+                        <p>Ứng dụng hỗ trợ 100% phím bấm chuẩn trên điều khiển TV từ xa:</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                          <b className="text-gray-900 block font-black">◄ ► Mũi tên Trái / Phải:</b>
+                          <span>Chuyển hoạt động bài giảng trước hoặc kế tiếp</span>
+                        </div>
+                        <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                          <b className="text-gray-900 block font-black">🔘 Phím OK / Enter:</b>
+                          <span>Chọn hoạt động, kích hoạt nghe giảng của Thầy</span>
+                        </div>
+                        <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-200">
+                          <b className="text-rose-900 block font-black">🔴 Nút Màu Đỏ TV:</b>
+                          <span>Bật / Dừng giọng giảng thuyết minh của Thầy</span>
+                        </div>
+                        <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                          <b className="text-emerald-900 block font-black">🟢 Nút Màu Xanh Lá TV:</b>
+                          <span>Hiện / Ẩn câu trả lời dự kiến của học sinh</span>
+                        </div>
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                          <b className="text-amber-900 block font-black">🟡 Nút Màu Vàng TV:</b>
+                          <span>Đổi chế độ xem (Tranh ảnh minh họa ⇄ Nét vẽ SGK)</span>
+                        </div>
+                        <div className="p-2.5 bg-indigo-50 rounded-xl border border-indigo-200">
+                          <b className="text-indigo-900 block font-black">🔵 Nút Màu Xanh Dương TV:</b>
+                          <span>Phóng to toàn màn hình Smart TV (Fullscreen)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {deviceTab === 'mobile' && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+                        <b className="text-emerald-900 block mb-1 text-sm">📱 Điều Khiển Cảm Ứng Trên Điện Thoại & Tablet:</b>
+                        <p>Tương thích mọi thao tác lướt ngón tay tự nhiên trên màn hình cảm ứng:</p>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                          <span className="text-2xl shrink-0">👈</span>
+                          <div>
+                            <b className="text-gray-900 block font-black">Vuốt Sang Trái (Swipe Left):</b>
+                            <span>Chuyển sang Hoạt động dạy học tiếp theo</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                          <span className="text-2xl shrink-0">👉</span>
+                          <div>
+                            <b className="text-gray-900 block font-black">Vuốt Sang Phải (Swipe Right):</b>
+                            <span>Quay lại Hoạt động dạy học trước đó</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                          <span className="text-2xl shrink-0">👆</span>
+                          <div>
+                            <b className="text-gray-900 block font-black">Thanh Điều Khiển Nổi Dưới Đáy Màn Hình:</b>
+                            <span>Dễ dàng cầm điện thoại 1 tay để điều khiển bài giảng trong lớp học</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {deviceTab === 'mouse' && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-purple-50 rounded-2xl border border-purple-200">
+                        <b className="text-purple-900 block mb-1 text-sm">🖱️ Điều Khiển Bằng Chuột Không Dây / Có Dây:</b>
+                        <p>Thầy cô chỉ cần cầm chuột không dây đi lại trong lớp để tương tác bài học:</p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                          <b className="text-gray-900 block font-black">🎡 Lăn Bánh Xe Xuống (Wheel Down):</b>
+                          <span>Chuyển hoạt động kế tiếp</span>
+                        </div>
+                        <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                          <b className="text-gray-900 block font-black">🎡 Lăn Bánh Xe Lên (Wheel Up):</b>
+                          <span>Quay về hoạt động trước</span>
+                        </div>
+                        <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                          <b className="text-gray-900 block font-black">🖱️ Nút Hông Chuột Không Dây (Phím 3, 4):</b>
+                          <span>Lùi lại / Tiến tới hoạt động bài học</span>
+                        </div>
+                        <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                          <b className="text-gray-900 block font-black">✨ Nhấp Đúp Vào Tranh Mẫu:</b>
+                          <span>Phóng to tranh toàn màn hình để học sinh ngắm</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {deviceTab === 'keyboard' && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200">
+                        <b className="text-amber-900 block mb-1 text-sm">⌨️ Bàn Phím Máy Tính & Bút Chỉ Trình Chiếu Laser:</b>
+                        <p>Đầy đủ phím tắt sư phạm hỗ trợ giảng dạy chuyên nghiệp:</p>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">1 - 5</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Đến Hoạt động 1-5</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">Space / PgDn</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Hoạt động tiếp</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">Backspace / PgUp</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Hoạt động trước</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">A</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Hiện/Ẩn đáp án</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">V</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Nghe Thầy giảng</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">M</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Đổi chế độ tranh</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">F / F5</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Toàn màn hình</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">B hoặc dấu .</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Màn hình đen</span>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">W hoặc dấu ,</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Bảng trắng</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="p-4 bg-gray-100 border-t border-gray-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsTvMode(v => !v)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1 ${
+                        isTvMode ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Tv className="w-3.5 h-3.5" />
+                      <span>{isTvMode ? 'Tắt Chế Độ Smart TV' : 'Bật Chế Độ Smart TV'}</span>
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowDeviceControllerModal(false)}
+                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black transition shadow"
+                  >
+                    Đã Hiểu & Tiếp Tục Giảng Dạy
                   </button>
                 </div>
               </div>
