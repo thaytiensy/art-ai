@@ -31,7 +31,14 @@ import { KET_NOI_TRI_THUC_DATA } from '../data/ketNoiTriThucCurriculum';
 import { generateTeacherResponse } from '../services/gemini';
 import { ttsService } from '../services/tts';
 
-export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, onGoToCritique, teacher }) {
+export default function ThematicTeacherChat({ 
+  apiKey, 
+  onStartDrawingOnCanvas, 
+  onGoToCritique, 
+  teacher,
+  onUnitChange,
+  onSlideChange
+}) {
   const [selectedGrade, setSelectedGrade] = useState(1);
   const [selectedUnit, setSelectedUnit] = useState(KET_NOI_TRI_THUC_DATA[0]);
   const [viewMode, setViewMode] = useState('powerpoint'); // 'powerpoint' | 'word' | 'chat'
@@ -47,6 +54,8 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
   // Interactive Quiz & Activities State
   const [activeInteractiveTab, setActiveInteractiveTab] = useState(null); // 'quiz' | 'explore' | 'apply'
   const [quizAnswered, setQuizAnswered] = useState(false);
+  const [selectedQuizOption, setSelectedQuizOption] = useState(null);
+  const [quizFeedback, setQuizFeedback] = useState(null);
 
   // Chat State
   const [messages, setMessages] = useState([]);
@@ -76,6 +85,8 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
       setSelectedUnit(firstOfGrade);
       setCurrentSlideIndex(0);
       setQuizAnswered(false);
+      setSelectedQuizOption(null);
+      setQuizFeedback(null);
       clearPenCanvas();
     }
   };
@@ -84,10 +95,25 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
     setSelectedUnit(unit);
     setCurrentSlideIndex(0);
     setQuizAnswered(false);
+    setSelectedQuizOption(null);
+    setQuizFeedback(null);
     clearPenCanvas();
     ttsService.stop();
     setIsSpeaking(false);
   };
+
+  // Synchronize unit & slide with parent App
+  useEffect(() => {
+    if (onUnitChange && selectedUnit) {
+      onUnitChange(selectedUnit);
+    }
+  }, [selectedUnit, onUnitChange]);
+
+  useEffect(() => {
+    if (onSlideChange) {
+      onSlideChange(currentSlideIndex);
+    }
+  }, [currentSlideIndex, onSlideChange]);
 
   // Pre-warm audio cache for all slides of this unit in the background
   useEffect(() => {
@@ -103,6 +129,8 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
   // When switching slides, auto speak lecture if voice is enabled
   useEffect(() => {
     setQuizAnswered(false);
+    setSelectedQuizOption(null);
+    setQuizFeedback(null);
     clearPenCanvas();
 
     if (viewMode === 'powerpoint' && voiceEnabled && currentSlide?.teacherLecture) {
@@ -215,6 +243,45 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
   };
 
   // Handle Interactive Quiz
+  const handleChooseQuizOption = (idx) => {
+    setSelectedQuizOption(idx);
+    const correctIdx = currentSlide.interactiveAction?.correctIndex ?? 0;
+    const isCorrect = idx === correctIdx;
+    
+    if (isCorrect) {
+      setQuizAnswered(true);
+      const exp = currentSlide.interactiveAction?.explanation || 'Con trả lời hoàn toàn chính xác rồi!';
+      setQuizFeedback({
+        correct: true,
+        text: exp
+      });
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      if (voiceEnabled) {
+        ttsService.speak(
+          `Hoan hô con! Con trả lời hoàn toàn chính xác rồi đấy! ${exp}`,
+          () => setIsSpeaking(true),
+          () => setIsSpeaking(false)
+        );
+      }
+    } else {
+      setQuizFeedback({
+        correct: false,
+        text: '💡 Chưa đúng rồi con ơi! Con thử quan sát kĩ lại và chọn đáp án khác xem sao nhé!'
+      });
+      if (voiceEnabled) {
+        ttsService.speak(
+          'Chưa chính xác rồi con ơi, con hãy thử suy nghĩ và chọn lại xem sao nhé!',
+          () => setIsSpeaking(true),
+          () => setIsSpeaking(false)
+        );
+      }
+    }
+  };
+
   const handleQuizAnswer = (isCorrect) => {
     setQuizAnswered(true);
     if (isCorrect) {
@@ -695,18 +762,63 @@ export default function ThematicTeacherChat({ apiKey, onStartDrawingOnCanvas, on
                     {currentSlide.interactiveAction && (
                       <div className="mt-5 p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-orange-100 to-pink-100 border-2 border-amber-300 shadow-sm">
                         {currentSlide.interactiveAction.type === 'quiz' && (
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2.5">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-black text-amber-900 flex items-center gap-1.5">
                                 <HelpCircle className="w-4 h-4 text-amber-700" />
                                 <span>{currentSlide.interactiveAction.label}</span>
                               </span>
+                              {currentSlide.interactiveAction.options && (
+                                <span className="text-[10px] font-black text-amber-800 bg-white/80 px-2 py-0.5 rounded-lg border border-amber-200">
+                                  Bấm chọn 1 đáp án đúng
+                                </span>
+                              )}
                             </div>
-                            <p className="text-xs sm:text-sm font-extrabold text-gray-800">
+                            <p className="text-xs sm:text-sm font-extrabold text-gray-900 leading-snug">
                               "{currentSlide.interactiveAction.question}"
                             </p>
                             
-                            {!quizAnswered ? (
+                            {currentSlide.interactiveAction.options ? (
+                              <div className="flex flex-col gap-2 mt-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  {currentSlide.interactiveAction.options.map((opt, idx) => {
+                                    const isSelected = selectedQuizOption === idx;
+                                    const isCorrect = idx === (currentSlide.interactiveAction.correctIndex ?? 0);
+                                    let btnStyle = 'bg-white hover:bg-amber-50 text-gray-800 border-amber-200';
+                                    if (quizAnswered) {
+                                      if (isCorrect) btnStyle = 'bg-emerald-500 text-white border-emerald-600 shadow-md ring-2 ring-emerald-300 scale-102';
+                                      else if (isSelected) btnStyle = 'bg-rose-100 text-rose-800 border-rose-300';
+                                    } else if (isSelected) {
+                                      btnStyle = 'bg-amber-100 text-amber-900 border-amber-400';
+                                    }
+
+                                    return (
+                                      <button
+                                        key={idx}
+                                        onClick={() => handleChooseQuizOption(idx)}
+                                        className={`p-3 rounded-2xl border-2 text-xs font-black text-left transition-all flex items-center gap-2.5 shadow-xs ${btnStyle}`}
+                                      >
+                                        <span className="w-6 h-6 rounded-xl bg-black/10 flex items-center justify-center text-xs font-black shrink-0">
+                                          {['A', 'B', 'C'][idx] || idx + 1}
+                                        </span>
+                                        <span className="leading-tight">{opt}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                {quizFeedback && (
+                                  <div className={`p-3 rounded-2xl text-xs font-extrabold border-2 flex items-center gap-2.5 animate-in fade-in ${
+                                    quizFeedback.correct 
+                                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-sm' 
+                                      : 'bg-amber-50 text-amber-900 border-amber-300'
+                                  }`}>
+                                    <span className="text-xl shrink-0">{quizFeedback.correct ? '🎉' : '💡'}</span>
+                                    <span className="leading-relaxed">{quizFeedback.text}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : !quizAnswered ? (
                               <div className="flex gap-2 flex-wrap mt-1">
                                 <button
                                   onClick={() => handleQuizAnswer(true)}

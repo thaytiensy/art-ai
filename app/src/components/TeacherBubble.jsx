@@ -2,23 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, MessageSquare, X, Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
 import { ttsService } from '../services/tts';
 
-export default function TeacherBubble({ activeTab, onOpenChat, onGoToCritique }) {
+export default function TeacherBubble({ activeTab, onOpenChat, onGoToCritique, currentUnit, currentSlideIndex = 0 }) {
   const [isOpen, setIsOpen] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentMessage, setCurrentMessage] = useState('');
 
-  // Context-aware speech line from Thầy depending on what tab the student is viewing
+  // Context-aware speech line from Thầy depending on what tab and lesson the student is viewing
   useEffect(() => {
     let msg = '';
     switch (activeTab) {
       case 'thematicChat':
-        msg = 'Thầy chào con! Hôm nay con muốn học chủ đề mĩ thuật nào? Thầy đã chuẩn bị sẵn nhiều bí quyết vẽ tranh cực hay cho con rồi đấy!';
+        if (currentUnit) {
+          const currentSlide = currentUnit.powerpointSlides?.[currentSlideIndex];
+          msg = `Thầy chào con! Hôm nay chúng mình học "${currentUnit.title}" (${currentUnit.unitNumber} - ${currentUnit.gradeLabel}). ${currentSlide?.teacherLecture || currentUnit.summary}`;
+        } else {
+          msg = 'Thầy chào con! Thầy đã chuẩn bị sẵn sàng các bài học Mĩ thuật chuẩn SGK Kết nối tri thức cho con rồi đấy!';
+        }
         break;
       case 'canvas':
-        msg = 'Bảng vẽ của con đây rồi! Hãy tự do phối màu và vẽ theo cảm xúc nhé. Vẽ xong con nhớ bấm "Nhờ Thầy Nhận Xét Tranh" để Thầy chấm điểm nha!';
+        msg = currentUnit 
+          ? `Bảng vẽ thực hành bài "${currentUnit.title}" đây rồi! Con hãy áp dụng bí quyết của Thầy để vẽ thật tự tin nhé!`
+          : 'Bảng vẽ của con đây rồi! Hãy tự do phối màu và vẽ theo cảm xúc nhé. Vẽ xong con nhớ bấm "Nhờ Thầy Nhận Xét Tranh" để Thầy chấm điểm nha!';
         break;
       case 'critique':
-        msg = 'Thầy đang quan sát bức tranh của con đây! Mỗi nét vẽ đều chứa đựng sự sáng tạo tuyệt vời của con.';
+        msg = currentUnit
+          ? `Thầy đang ngắm bài vẽ chủ đề "${currentUnit.title}" của con! Thầy sẽ đánh giá theo 4 tiêu chí Rubric GDPT 2018 nhé!`
+          : 'Thầy đang quan sát bức tranh của con đây! Mỗi nét vẽ đều chứa đựng sự sáng tạo tuyệt vời của con.';
         break;
       case 'stepbystep':
         msg = 'Học vẽ từng bước sẽ giúp con nắm chắc hình khối cơ bản. Con hãy bắt đầu từ các nét hình tròn, hình vuông to trước nhé!';
@@ -31,7 +40,7 @@ export default function TeacherBubble({ activeTab, onOpenChat, onGoToCritique })
     }
 
     setCurrentMessage(msg);
-  }, [activeTab]);
+  }, [activeTab, currentUnit, currentSlideIndex]);
 
   const speakCurrentMessage = () => {
     if (isSpeaking) {

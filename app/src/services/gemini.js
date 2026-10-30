@@ -284,6 +284,13 @@ export async function generateTeacherResponse(userMessage, unit, apiKey, teacher
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
   const unitTitle = unit?.title || 'Bài học Mĩ thuật';
+  const unitNumber = unit?.unitNumber || '';
+  const grade = unit?.grade || 1;
+  const summary = unit?.summary || '';
+  const objectives = unit?.wordLessonPlan?.objectives?.join('; ') || '';
+  const slidesInfo = (unit?.powerpointSlides || [])
+    .map(s => `[Slide ${s.slideNumber}: ${s.title}] Nội dung: ${s.teacherLecture || ''}`)
+    .join('\n');
 
   // Sinh tranh mẫu khi học sinh yêu cầu
   const isAskingForImage = /vẽ mẫu|tranh mẫu|xem hình|cho con xem|hình mẫu|xem tranh|vẽ giúp/i.test(userMessage);
@@ -305,10 +312,21 @@ export async function generateTeacherResponse(userMessage, unit, apiKey, teacher
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Bạn là "${teacherName}" - Thầy giáo Mĩ thuật Tiểu học (SGK Kết nối tri thức với cuộc sống).
-Bài học hiện tại: "${unitTitle}" (Khối lớp ${unit?.grade || 1}).
-Học sinh hỏi: "${userMessage}"
-Hãy trả lời bé bằng giọng điệu ấm áp, xưng "${pronoun}", động viên, hướng dẫn vẽ từng bước dễ hiểu theo chuẩn sư phạm GDPT 2018 (tối đa 3-4 câu ngắn gọn, nhiều emoji sinh động).`
+                text: `Bạn là "${teacherName}" - Thầy giáo Mĩ thuật Tiểu học tận tâm, am hiểu sâu sắc bộ sách "Kết nối tri thức với cuộc sống" (Chuẩn GDPT 2018).
+THÔNG TIN BÀI HỌC HIỆN TẠI ĐANG DẠY:
+- Khối lớp: Lớp ${grade}
+- Chủ đề: "${unitTitle}" (${unitNumber})
+- Tóm tắt nội dung bài học: "${summary}"
+- Yêu cầu cần đạt chuẩn SGK: ${objectives}
+- Tiến trình các hoạt động của Thầy:
+${slidesInfo}
+
+Học sinh hỏi Thầy: "${userMessage}"
+
+YÊU CẦU SƯ PHẠM BẮT BUỘC:
+1. Trả lời BÁM SÁT 100% ĐÚNG nội dung bài học "${unitTitle}". Hướng dẫn cụ thể, dễ hiểu, phù hợp với học sinh tiểu học.
+2. Xưng "${pronoun}", gọi học sinh là "con" hoặc "họa sĩ nhí". Giọng điệu ấm áp, ngợi khen, động viên sáng tạo, kèm emoji sinh động.
+3. Độ dài 3-4 câu ngắn gọn, súc tích, dễ nhớ.`
               }]
             }]
           })
@@ -330,15 +348,27 @@ Hãy trả lời bé bằng giọng điệu ấm áp, xưng "${pronoun}", độn
     }
   }
 
-  // Phản hồi sư phạm thông minh theo từ khóa mĩ thuật
-  let replyText = `${teacherName} chào con! Về bài học "${unitTitle}", ${pronoun} khuyên con hãy bắt đầu phác các nét lớn hình học trước, sau đó phối màu tương phản thật tươi sáng. Con hãy thử vẽ ngay trên Bảng vẽ nhé! 🎨✨`;
+  // Phản hồi sư phạm chuyên sâu bám sát chính xác bài học đang học
+  const slide3 = unit?.powerpointSlides?.find(s => s.slideNumber === 3);
+  const slide2 = unit?.powerpointSlides?.find(s => s.slideNumber === 2);
+  const slide1 = unit?.powerpointSlides?.find(s => s.slideNumber === 1);
 
-  if (/pha màu|màu sắc/i.test(userMessage)) {
-    replyText = `Bí quyết của ${pronoun} đây: Con hãy dùng 3 màu gốc Đỏ, Vàng, Lam nhé. Đỏ pha Vàng thành Cam ấm áp, Vàng pha Lam thành Xanh lá mát rượi đấy! 🌈`;
+  let replyText = `${teacherName} chào con! Về bài học "${unitTitle}", ${slide3?.teacherLecture || slide1?.teacherLecture || summary}`;
+
+  if (/cách vẽ|làm sao|vẽ thế nào|hướng dẫn|các bước|làm bài/i.test(userMessage)) {
+    if (slide3?.bullets && slide3.bullets.length >= 3) {
+      replyText = `Bí quyết tạo hình bài "${unitTitle}" của ${pronoun} gồm 3 bước đơn giản:\n1️⃣ ${slide3.bullets[0]}\n2️⃣ ${slide3.bullets[1]}\n3️⃣ ${slide3.bullets[2]}\nCon hãy bấm vào "Vào Bảng Vẽ" để thực hành ngay nhé! 🎨✨`;
+    } else {
+      replyText = `${slide3?.teacherLecture || 'Hãy phác các nét lớn trước, sau đó phối màu tương phản tươi sáng con nhé!'}`;
+    }
+  } else if (/giảng bài|học gì|nội dung|chủ đề|khám phá/i.test(userMessage)) {
+    replyText = `Trong bài "${unitTitle}" này, ${slide2?.teacherLecture || summary} Con hãy quan sát thật kĩ các đặc điểm này để đưa vào bài vẽ nhé! 🔍✨`;
+  } else if (/pha màu|màu sắc/i.test(userMessage)) {
+    replyText = `Bí quyết màu sắc của ${pronoun}: Con hãy dùng 3 màu gốc Đỏ, Vàng, Lam nhé. Đỏ pha Vàng thành Cam ấm áp, Vàng pha Lam thành Xanh lá mát rượi đấy! 🌈`;
   } else if (/xa gần|không gian|phối cảnh/i.test(userMessage)) {
     replyText = `Công thức luật xa gần của ${pronoun} cực dễ nhớ: "Gần thì To và Rõ, Xa thì Nhỏ và Mờ". Con kẻ đường chân trời ở khoảng một phần ba trang giấy là chuẩn nhất nha! 🌾`;
-  } else if (/đẹp|khen/i.test(userMessage)) {
-    replyText = `${pronoun} tin chắc bức tranh của con sẽ rất xuất sắc! Mỗi nét vẽ tự tin của con đều chứa đựng sự sáng tạo tuyệt vời. Cố lên con nhé! 🌟`;
+  } else if (/đẹp|khen|chấm/i.test(userMessage)) {
+    replyText = `${pronoun} tin chắc bức tranh "${unitTitle}" của con sẽ rất xuất sắc! Mỗi nét vẽ tự tin của con đều chứa đựng sự sáng tạo tuyệt vời. Cố lên con nhé! 🌟`;
   }
 
   return {

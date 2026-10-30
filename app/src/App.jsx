@@ -15,6 +15,7 @@ import InspirationView from './components/InspirationView';
 import ThematicTeacherChat from './components/ThematicTeacherChat';
 import ApiKeyModal from './components/ApiKeyModal';
 import TeacherBubble from './components/TeacherBubble';
+import { KET_NOI_TRI_THUC_DATA } from './data/ketNoiTriThucCurriculum';
 import { ttsService } from './services/tts';
 
 export default function App() {
@@ -23,6 +24,8 @@ export default function App() {
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [critiqueImage, setCritiqueImage] = useState(null);
   const [canvasTemplate, setCanvasTemplate] = useState(null);
+  const [currentUnit, setCurrentUnit] = useState(KET_NOI_TRI_THUC_DATA[0]);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   
   // 100% Persona: Thầy Giáo Mĩ Thuật (Thầy Cọ Nhí với ảnh chân dung thực tế)
   const teacher = { 
@@ -190,6 +193,8 @@ export default function App() {
             teacher={teacher}
             onStartDrawingOnCanvas={handleSelectToDraw}
             onGoToCritique={() => setActiveTab('critique')}
+            onUnitChange={(u) => setCurrentUnit(u)}
+            onSlideChange={(idx) => setCurrentSlideIndex(idx)}
           />
         )}
 
@@ -228,6 +233,8 @@ export default function App() {
       {/* Floating Teacher Lecture Bubble */}
       <TeacherBubble
         activeTab={activeTab}
+        currentUnit={currentUnit}
+        currentSlideIndex={currentSlideIndex}
         onOpenChat={() => setActiveTab('thematicChat')}
         onGoToCritique={() => setActiveTab('critique')}
       />
