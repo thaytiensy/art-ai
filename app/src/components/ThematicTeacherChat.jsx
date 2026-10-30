@@ -70,7 +70,7 @@ export default function ThematicTeacherChat({
 
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
-  const avatarUrl = teacher?.avatarUrl || '/teacher.jpg';
+  const avatarUrl = teacher?.avatarUrl || './teacher.jpg';
 
   // Filter lessons for selected grade
   const gradeUnits = KET_NOI_TRI_THUC_DATA.filter(u => u.grade === selectedGrade);

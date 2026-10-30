@@ -54,7 +54,7 @@ export default function StepByStepView({ onSelectToDraw }) {
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-inner shrink-0">
             <img
-              src="/teacher.jpg"
+              src="./teacher.jpg"
               alt="Thầy Cọ Nhí"
               className="w-full h-full object-cover animate-bounce-gentle"
             />

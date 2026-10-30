@@ -143,7 +143,7 @@ export default function TeacherBubble({ activeTab, onOpenChat, onGoToCritique, c
           {/* Avatar Image */}
           <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center">
             <img
-              src="/teacher.jpg"
+              src="./teacher.jpg"
               alt="Thầy Giáo Mĩ Thuật"
               className="w-full h-full object-cover transform group-hover:scale-110 transition duration-300"
             />

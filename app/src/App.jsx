@@ -32,7 +32,7 @@ export default function App() {
     name: 'Thầy Cọ Nhí', 
     pronoun: 'Thầy', 
     title: 'Thầy giáo', 
-    avatarUrl: '/teacher.jpg',
+    avatarUrl: './teacher.jpg',
     fallbackEmoji: '👨‍🏫',
     gender: 'male' 
   };

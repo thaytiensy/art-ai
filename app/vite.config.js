@@ -10,6 +10,7 @@ import os from 'os';
 const ttsCache = new Map();
 
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     {
