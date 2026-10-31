@@ -1,6 +1,6 @@
 // ART AI: 100% Vietnamese Male Art Teacher Voice Engine (Thầy Cọ Nhí)
 // Uses Microsoft Edge Neural TTS (vi-VN-NamMinhNeural) with multi-host failover,
-// intelligent autoplay unlocking, and resilient male-pitch synthesis fallback.
+// direct Google Vietnamese TTS secondary fallback, and pitch-shifted WebSpeech safety net.
 
 class TeacherSpeechService {
   constructor() {
@@ -30,14 +30,13 @@ class TeacherSpeechService {
   }
 
   stop() {
-    // Increment sessionId to invalidate any in-flight async operations
     this.currentSessionId++;
 
     if (this.audioPlayer) {
       try {
         this.audioPlayer.pause();
         this.audioPlayer.removeAttribute('src');
-        this.audioPlayer.load(); // Cancels pending network download immediately
+        this.audioPlayer.load();
       } catch (e) {}
       this.audioPlayer = null;
     }
@@ -59,13 +58,19 @@ class TeacherSpeechService {
     const isClient = typeof window !== 'undefined';
     const isGithubPages = isClient && window.location.hostname.includes('github.io');
 
-    // 1. Same-origin relative path (Instant on localhost and artaimithuat.vercel.app)
+    // 1. Same-origin relative path (Instant on localhost:3000 and artaimithuat.vercel.app)
     if (!isGithubPages) {
       urls.push(`/api/tts?text=${encoded}`);
     }
 
-    // 2. Global Vercel production serverless gateway (Enabled with CORS for GitHub Pages & cross-origin)
+    // 2. Global Vercel production serverless gateway (with CORS)
     urls.push(`https://artaimithuat.vercel.app/api/tts?text=${encoded}`);
+
+    // 3. Direct Google Vietnamese TTS (100% Guaranteed fallback in any browser)
+    // Slices text to first sentence (<180 chars) to adhere to Google Translate limits
+    const firstSentence = cleanText.split(/[.!?]\s+/)[0] || cleanText;
+    const googleText = firstSentence.slice(0, 180).trim();
+    urls.push(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(googleText)}&tl=vi&client=tw-ob`);
 
     // Deduplicate
     return [...new Set(urls)];
@@ -100,7 +105,6 @@ class TeacherSpeechService {
 
     if (!cleanText) return;
 
-    // Capture unique session ID to prevent race conditions & double-voice
     const activeSession = this.currentSessionId;
     const candidateUrls = this.getTtsCandidateUrls(cleanText);
     let urlIndex = 0;
@@ -117,7 +121,12 @@ class TeacherSpeechService {
 
       const currentUrl = candidateUrls[urlIndex++];
       const audio = new Audio();
-      audio.crossOrigin = 'anonymous';
+      
+      // Only set crossOrigin for our own endpoints, not third-party Google TTS
+      if (!currentUrl.includes('translate.google.com')) {
+        audio.crossOrigin = 'anonymous';
+      }
+      
       audio.src = currentUrl;
       this.audioPlayer = audio;
 
@@ -171,63 +180,72 @@ class TeacherSpeechService {
       return;
     }
 
-    const voices = this.synth.getVoices() || [];
+    const doSpeak = () => {
+      if (session !== undefined && this.currentSessionId !== session) return;
 
-    // Filter Vietnamese locale voices
-    const viVoices = voices.filter((v) => {
-      const lang = (v.lang || '').toLowerCase();
-      return lang.startsWith('vi') || lang.includes('vietnam');
-    });
+      const voices = this.synth.getVoices() || [];
+      const viVoices = voices.filter((v) => {
+        const lang = (v.lang || '').toLowerCase();
+        return lang.startsWith('vi') || lang.includes('vietnam');
+      });
 
-    // Priority 1: Specifically identified Male Vietnamese voice (NamMinh / Male)
-    let selectedVoice = viVoices.find((v) => {
-      const name = v.name.toLowerCase();
-      const isFemale = /(hoaimy|mai|linh|chi|nu|female|woman|girl|an\b)/i.test(name);
-      if (isFemale) return false;
-      return name.includes('namminh') || /\b(nam|male)\b/i.test(name.replace(/vietnam/gi, ''));
-    });
+      // Priority 1: Specifically identified Male Vietnamese voice (NamMinh / Male)
+      let selectedVoice = viVoices.find((v) => {
+        const name = v.name.toLowerCase();
+        const isFemale = /(hoaimy|mai|linh|chi|nu|female|woman|girl|an\b)/i.test(name);
+        if (isFemale) return false;
+        return name.includes('namminh') || /\b(nam|male)\b/i.test(name.replace(/vietnam/gi, ''));
+      });
 
-    // Priority 2: If no explicit male voice exists in OS, adapt available Vietnamese voice
-    let pitch = 0.85;
-    let rate = 0.95;
+      let pitch = 0.85;
+      let rate = 0.95;
 
-    if (!selectedVoice && viVoices.length > 0) {
-      selectedVoice = viVoices[0];
-      // Drastically lower pitch to 0.65 to transform into a calm, warm fatherly baritone male teacher voice
-      pitch = 0.65;
-      rate = 0.90;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-    }
-    utterance.lang = 'vi-VN';
-    utterance.pitch = pitch;
-    utterance.rate = rate;
-
-    utterance.onstart = () => {
-      if (session !== undefined && this.currentSessionId !== session) {
-        try { this.synth.cancel(); } catch (e) {}
-        return;
+      if (!selectedVoice && viVoices.length > 0) {
+        selectedVoice = viVoices[0];
+        pitch = 0.65;
+        rate = 0.90;
       }
-      this.isSpeaking = true;
-      if (onStart) onStart();
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+      utterance.lang = 'vi-VN';
+      utterance.pitch = pitch;
+      utterance.rate = rate;
+
+      utterance.onstart = () => {
+        if (session !== undefined && this.currentSessionId !== session) {
+          try { this.synth.cancel(); } catch (e) {}
+          return;
+        }
+        this.isSpeaking = true;
+        if (onStart) onStart();
+      };
+
+      utterance.onend = () => {
+        if (session !== undefined && this.currentSessionId !== session) return;
+        this.isSpeaking = false;
+        if (onEnd) onEnd();
+      };
+
+      utterance.onerror = () => {
+        if (session !== undefined && this.currentSessionId !== session) return;
+        this.isSpeaking = false;
+        if (onEnd) onEnd();
+      };
+
+      this.synth.speak(utterance);
     };
 
-    utterance.onend = () => {
-      if (session !== undefined && this.currentSessionId !== session) return;
-      this.isSpeaking = false;
-      if (onEnd) onEnd();
-    };
-
-    utterance.onerror = () => {
-      if (session !== undefined && this.currentSessionId !== session) return;
-      this.isSpeaking = false;
-      if (onEnd) onEnd();
-    };
-
-    this.synth.speak(utterance);
+    if (this.synth.getVoices().length === 0) {
+      this.synth.onvoiceschanged = () => {
+        doSpeak();
+      };
+      setTimeout(doSpeak, 250);
+    } else {
+      doSpeak();
+    }
   }
 }
 

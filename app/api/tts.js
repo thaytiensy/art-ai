@@ -1,14 +1,50 @@
-// Vercel Serverless Function: /api/tts
-// 100% Free Vietnamese Male Art Teacher Voice Engine (Thầy Cọ Nhí)
-// Model: Microsoft Edge Neural TTS vi-VN-NamMinhNeural via msedge-tts
+// ART AI: Dual-Engine Serverless TTS
+// Engine 1: Microsoft Edge Neural TTS vi-VN-NamMinhNeural (Thầy Cọ Nhí)
+// Engine 2: Google Vietnamese TTS (Auto-fallback & sentence concatenation)
 
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+import https from 'https';
 
-// In-memory cache for serverless execution reuse
 const ttsCache = new Map();
 
+function fetchGoogleTtsChunk(text) {
+  return new Promise((resolve, reject) => {
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=vi&client=tw-ob`;
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }, (res) => {
+      if (res.statusCode !== 200) {
+        return reject(new Error(`Google TTS status: ${res.statusCode}`));
+      }
+      const chunks = [];
+      res.on('data', (d) => chunks.push(d));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+    }).on('error', reject);
+  });
+}
+
+async function synthesizeGoogleTts(cleanText) {
+  const words = cleanText.split(/\s+/);
+  const segments = [];
+  let current = '';
+
+  for (const word of words) {
+    if ((current + ' ' + word).trim().length <= 150) {
+      current = (current + ' ' + word).trim();
+    } else {
+      if (current) segments.push(current);
+      current = word;
+    }
+  }
+  if (current) segments.push(current);
+
+  const buffers = [];
+  for (const seg of segments) {
+    const buf = await fetchGoogleTtsChunk(seg);
+    if (buf && buf.length > 0) buffers.push(buf);
+  }
+  return Buffer.concat(buffers);
+}
+
 export default async function handler(req, res) {
-  // Enable CORS for all clients (including GitHub Pages and localhost)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -33,7 +69,6 @@ export default async function handler(req, res) {
     return res.status(400).send('Empty text');
   }
 
-  // Cache hit in RAM
   if (ttsCache.has(cleanText)) {
     const cached = ttsCache.get(cleanText);
     res.setHeader('Content-Type', 'audio/mpeg');
@@ -54,53 +89,60 @@ export default async function handler(req, res) {
       resolve();
     };
 
-    // Timeout safety: 9s (Vercel free tier limit is 10s)
-    const timer = setTimeout(() => {
-      finish(504, 'TTS Timeout');
-    }, 9000);
-
-    try {
-      const tts = new MsEdgeTTS();
-      await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-      const { audioStream } = tts.toStream(cleanText);
-      const chunks = [];
-
-      audioStream.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
-
-      audioStream.on('end', () => {
-        clearTimeout(timer);
-        const buffer = Buffer.concat(chunks);
-        if (buffer.length > 0) {
-          ttsCache.set(cleanText, buffer);
-          finish(200, buffer, {
-            'Content-Type': 'audio/mpeg',
-            'Content-Length': buffer.length,
-            'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800'
+    // 1. Primary: Microsoft Edge Neural TTS
+    const tryEdgeTTS = () => {
+      return new Promise(async (resEdge, rejEdge) => {
+        const timeout = setTimeout(() => rejEdge(new Error('Edge TTS timeout')), 4500);
+        try {
+          const tts = new MsEdgeTTS();
+          await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+          const { audioStream } = tts.toStream(cleanText);
+          const chunks = [];
+          audioStream.on('data', (c) => chunks.push(c));
+          audioStream.on('end', () => {
+            clearTimeout(timeout);
+            resEdge(Buffer.concat(chunks));
           });
-        } else {
-          finish(500, 'Empty audio stream');
+          audioStream.on('error', (err) => {
+            clearTimeout(timeout);
+            rejEdge(err);
+          });
+        } catch (e) {
+          clearTimeout(timeout);
+          rejEdge(e);
         }
       });
+    };
 
-      audioStream.on('error', (err) => {
-        clearTimeout(timer);
-        console.error('Edge-TTS stream error:', err);
-        finish(500, 'TTS Stream Error: ' + err.message);
-      });
-
-      if (req && typeof req.on === 'function') {
-        req.on('close', () => {
-          clearTimeout(timer);
-          try { tts.close(); } catch (e) {}
+    try {
+      const edgeBuffer = await tryEdgeTTS();
+      if (edgeBuffer && edgeBuffer.length > 0) {
+        ttsCache.set(cleanText, edgeBuffer);
+        return finish(200, edgeBuffer, {
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': edgeBuffer.length,
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800'
         });
       }
-
-    } catch (err) {
-      clearTimeout(timer);
-      console.error('Edge-TTS initialization error:', err);
-      finish(500, 'TTS Init Error: ' + err.message);
+    } catch (edgeErr) {
+      console.warn('[TTS] Edge Neural failed on cloud, activating Google TTS fallback:', edgeErr.message);
     }
+
+    // 2. Secondary Fallback: Google Vietnamese TTS
+    try {
+      const googleBuffer = await synthesizeGoogleTts(cleanText);
+      if (googleBuffer && googleBuffer.length > 0) {
+        ttsCache.set(cleanText, googleBuffer);
+        return finish(200, googleBuffer, {
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': googleBuffer.length,
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800'
+        });
+      }
+    } catch (googleErr) {
+      console.error('[TTS] Google TTS fallback also failed:', googleErr.message);
+    }
+
+    finish(500, 'All TTS Engines Unavailable');
   });
 }

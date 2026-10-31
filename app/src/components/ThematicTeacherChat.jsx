@@ -203,7 +203,6 @@ export default function ThematicTeacherChat({
     setQuizFeedback(null);
     setAllAnswersRevealed(false);
     setRevealedAnswers({});
-    setSlideImageLoaded(false);
     setSlideImageError(false);
     setIsBlackScreen(false);
     setIsWhiteScreen(false);
@@ -1412,61 +1411,67 @@ export default function ThematicTeacherChat({
                           onDoubleClick={() => setZoomArtworkModal(true)}
                           title="Nhấp đúp chuột để phóng to tranh toàn màn hình"
                         >
-                          {visualMode === 'ai' && !slideImageError ? (
-                            <>
-                              <img
-                                src={currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl}
-                                alt={currentSlide.visualArt?.title || selectedUnit.title}
-                                className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                                  slideImageLoaded ? 'opacity-100' : 'opacity-0'
-                                }`}
-                                onLoad={() => setSlideImageLoaded(true)}
-                                onError={() => setSlideImageError(true)}
-                              />
-                              {!slideImageLoaded && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-amber-50/90 text-amber-900 text-xs font-bold gap-2">
-                                  <Sparkles className="w-4 h-4 animate-spin text-amber-500" />
-                                  <span>Đang tải tranh mẫu sắc nét...</span>
-                                </div>
-                              )}
-                              <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[10px] font-black flex items-center gap-1 shadow">
-                                <Sparkles className="w-3 h-3 text-amber-300" />
-                                <span>Tranh Minh Họa Sống Động</span>
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setZoomArtworkModal(true);
-                                }}
-                                className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-gray-800 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-gray-200"
-                              >
-                                <ZoomIn className="w-3 h-3 text-amber-600" />
-                                <span>Phóng to</span>
-                              </button>
-                            </>
-                          ) : (
-                            /* Guaranteed Vector SVG Fallback (100% Instant, Zero Failure) */
-                            <div className="w-full h-full flex flex-col items-center justify-center relative">
-                              <div 
-                                className="w-full h-full p-1 flex items-center justify-center"
-                                dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
-                              />
-                              <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-amber-600 text-white text-[10px] font-black flex items-center gap-1 shadow">
-                                <Palette className="w-3 h-3" />
-                                <span>Nét Vẽ SGK Vector</span>
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setZoomArtworkModal(true);
-                                }}
-                                className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-gray-800 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-gray-200"
-                              >
-                                <ZoomIn className="w-3 h-3 text-amber-600" />
-                                <span>Phóng to</span>
-                              </button>
+                          {/* 1. Underlying Vector SGK Art Layer (Always ready with 0ms delay) */}
+                          <div 
+                            className="absolute inset-0 w-full h-full p-2 flex items-center justify-center select-none"
+                            dangerouslySetInnerHTML={{ __html: currentSlide.visualArt?.svg || selectedUnit.visualArt?.svg || '' }}
+                          />
+
+                          {/* 2. Photo Artwork Layer (Smoothly fades in over SVG when loaded) */}
+                          {visualMode === 'ai' && !slideImageError && (
+                            <img
+                              key={`${selectedUnit.id}-${currentSlideIndex}-${currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl}`}
+                              src={currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl}
+                              alt={currentSlide.visualArt?.title || selectedUnit.title}
+                              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:scale-105 ${
+                                slideImageLoaded ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                              }`}
+                              onLoad={() => setSlideImageLoaded(true)}
+                              onError={() => {
+                                setSlideImageError(true);
+                                setSlideImageLoaded(false);
+                              }}
+                              ref={(el) => {
+                                if (el && el.complete && el.naturalWidth > 0 && !slideImageLoaded) {
+                                  setSlideImageLoaded(true);
+                                }
+                              }}
+                            />
+                          )}
+
+                          {/* 3. Non-blocking Discreet Loading Indicator */}
+                          {visualMode === 'ai' && !slideImageLoaded && !slideImageError && (
+                            <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-amber-200 text-[10px] font-bold flex items-center gap-1.5 shadow">
+                              <Sparkles className="w-3 h-3 animate-spin text-amber-300" />
+                              <span>Đang làm nét tranh ảnh...</span>
                             </div>
                           )}
+
+                          {/* Mode Indicator Badge */}
+                          <div className="absolute top-2 left-2 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[10px] font-black flex items-center gap-1 shadow">
+                            {visualMode === 'ai' && slideImageLoaded && !slideImageError ? (
+                              <>
+                                <Sparkles className="w-3 h-3 text-amber-300" />
+                                <span>Tranh Minh Họa Sống Động</span>
+                              </>
+                            ) : (
+                              <>
+                                <Palette className="w-3 h-3 text-amber-400" />
+                                <span>Nét Vẽ SGK Vector</span>
+                              </>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setZoomArtworkModal(true);
+                            }}
+                            className="absolute bottom-2 right-2 px-2.5 py-1 rounded-xl bg-white/95 hover:bg-white text-gray-800 text-[10px] font-black shadow flex items-center gap-1 transition active:scale-95 border border-gray-200"
+                          >
+                            <ZoomIn className="w-3 h-3 text-amber-600" />
+                            <span>Phóng to</span>
+                          </button>
                         </div>
 
                         {/* Caption & Visual Analysis */}
