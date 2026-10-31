@@ -72,18 +72,77 @@
         background: #ec4899;
       }
     </style>
+    <!-- Auto-Update & Cache Purge Engine -->
+    <script>
+      (function() {
+        const CURRENT_APP_BUILD = '2.6.0-female-lecture-auto';
+        const previousBuild = localStorage.getItem('ARTED_APP_BUILD_ID');
+        if (previousBuild !== CURRENT_APP_BUILD) {
+          localStorage.setItem('ARTED_APP_BUILD_ID', CURRENT_APP_BUILD);
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) {
+                caches.delete(name);
+              });
+            });
+          }
+        }
+
+        // Global recovery if a dynamic chunk fails to load due to stale cache
+        window.addEventListener('error', function(e) {
+          if (e && e.message && (e.message.indexOf('Loading chunk') !== -1 || e.message.indexOf('Unexpected token') !== -1)) {
+            console.warn('Phát hiện lỗi nạp module phiên bản cũ, đang tự động làm mới...');
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                names.forEach(function(n) { caches.delete(n); });
+              });
+            }
+            if (!sessionStorage.getItem('reloaded_for_chunk_error')) {
+              sessionStorage.setItem('reloaded_for_chunk_error', 'true');
+              window.location.reload();
+            }
+          }
+        });
+      })();
+    </script>
   </head>
   <body class="bg-gradient-to-br from-amber-50 via-pink-50 to-sky-50 text-gray-800 min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <!-- Register PWA Service Worker -->
+    <!-- Register PWA Service Worker with Auto-Update Mechanism -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js').then((reg) => {
             console.log('PWA Service Worker registered:', reg.scope);
+            
+            // Check for update on every page load
+            reg.update();
+
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New version installed! Take over immediately
+                    console.log('Phiên bản mới đã sẵn sàng. Tự động áp dụng...');
+                    installingWorker.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                  }
+                };
+              }
+            };
           }).catch((err) => {
             console.log('PWA SW registration failed:', err);
+          });
+
+          // Reload when new service worker takes control
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
           });
         });
       }
