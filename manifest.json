@@ -1,0 +1,25 @@
+{
+  "name": "ART AI - Thầy Giáo Mĩ Thuật Dạy Học",
+  "short_name": "ART AI Thầy Cọ Nhí",
+  "description": "Nền tảng AI Dạy Mĩ Thuật Tiểu Học Lớp 1 - 5 Chuẩn GDPT 2018",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBEB",
+  "theme_color": "#E11D48",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/teacher.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/teacher.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "art", "kids"]
+}
