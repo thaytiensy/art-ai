@@ -3,6 +3,7 @@ import { Volume2, VolumeX, MessageSquare, X, Sparkles, ChevronUp, ChevronDown, T
 import { ttsService } from '../services/tts';
 
 export default function TeacherBubble({ 
+  teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy', title: 'Thầy giáo', avatarUrl: './teacher.jpg', gender: 'male' },
   activeTab, 
   onOpenChat, 
   onGoToCritique, 
@@ -16,44 +17,49 @@ export default function TeacherBubble({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentMessage, setCurrentMessage] = useState('');
 
-  // Context-aware speech line from Thầy depending on what tab and lesson the student is viewing
+  const pronoun = teacher?.pronoun || 'Thầy';
+  const teacherTitle = teacher?.title || 'Thầy giáo';
+  const teacherName = teacher?.name || 'Thầy Cọ Nhí';
+  const avatarUrl = teacher?.avatarUrl || './teacher.jpg';
+
+  // Context-aware speech line from teacher depending on what tab and lesson the student is viewing
   useEffect(() => {
     let msg = '';
     if (isTvMode) {
-      msg = `📺 Thầy đang trình chiếu ở chế độ Màn hình Smart TV cho cả lớp! Con hoặc Thầy Cô có thể bấm phím mũi tên trên remote để chuyển slide và phím cách để nghe Thầy giảng bài nhé!`;
+      msg = `📺 ${pronoun} đang trình chiếu ở chế độ Màn hình Smart TV cho cả lớp! Con hoặc Thầy Cô có thể bấm phím mũi tên trên remote để chuyển slide và phím cách để nghe ${pronoun} giảng bài nhé!`;
     } else {
       switch (activeTab) {
         case 'thematicChat':
           if (currentUnit) {
             const currentSlide = currentUnit.powerpointSlides?.[currentSlideIndex];
-            msg = `Thầy chào con! Hôm nay chúng mình học "${currentUnit.title}" (${currentUnit.unitNumber} - ${currentUnit.gradeLabel}). ${currentSlide?.teacherLecture || currentUnit.summary}`;
+            msg = `${pronoun} chào con! Hôm nay chúng mình học "${currentUnit.title}" (${currentUnit.unitNumber} - ${currentUnit.gradeLabel}). ${currentSlide?.teacherLecture || currentUnit.summary}`;
           } else {
-            msg = 'Thầy chào con! Thầy đã chuẩn bị sẵn sàng các bài học Mĩ thuật chuẩn SGK Kết nối tri thức cho con rồi đấy!';
+            msg = `${pronoun} chào con! ${pronoun} đã chuẩn bị sẵn sàng các bài học Mĩ thuật chuẩn SGK Kết nối tri thức cho con rồi đấy!`;
           }
           break;
         case 'canvas':
           msg = currentUnit 
-            ? `Bảng vẽ thực hành bài "${currentUnit.title}" đây rồi! Con hãy áp dụng bí quyết của Thầy để vẽ thật tự tin nhé!`
-            : 'Bảng vẽ của con đây rồi! Hãy tự do phối màu và vẽ theo cảm xúc nhé. Vẽ xong con nhớ bấm "Nhờ Thầy Nhận Xét Tranh" để Thầy chấm điểm nha!';
+            ? `Bảng vẽ thực hành bài "${currentUnit.title}" đây rồi! Con hãy áp dụng bí quyết của ${pronoun} để vẽ thật tự tin nhé!`
+            : `Bảng vẽ của con đây rồi! Hãy tự do phối màu và vẽ theo cảm xúc nhé. Vẽ xong con nhớ bấm "Nhờ ${pronoun} Nhận Xét Tranh" để ${pronoun} chấm điểm nha!`;
           break;
         case 'critique':
           msg = currentUnit
-            ? `Thầy đang ngắm bài vẽ chủ đề "${currentUnit.title}" của con! Thầy sẽ đánh giá theo 4 tiêu chí Rubric GDPT 2018 nhé!`
-            : 'Thầy đang quan sát bức tranh của con đây! Mỗi nét vẽ đều chứa đựng sự sáng tạo tuyệt vời của con.';
+            ? `${pronoun} đang ngắm bài vẽ chủ đề "${currentUnit.title}" của con! ${pronoun} sẽ đánh giá theo 4 tiêu chí Rubric GDPT 2018 nhé!`
+            : `${pronoun} đang quan sát bức tranh của con đây! Mỗi nét vẽ đều chứa đựng sự sáng tạo tuyệt vời của con.`;
           break;
         case 'stepbystep':
-          msg = 'Học vẽ từng bước sẽ giúp con nắm chắc hình khối cơ bản và luật viễn cận. Đặc biệt Thầy có bài vẽ phong cảnh Lớp 4 và con vật rất đẹp đấy!';
+          msg = `Học vẽ từng bước sẽ giúp con nắm chắc hình khối cơ bản và luật viễn cận. Đặc biệt ${pronoun} có bài vẽ phong cảnh Lớp 4 và con vật rất đẹp đấy!`;
           break;
         case 'inspiration':
-          msg = 'Chào mừng con đến với Xưởng Ý Tưởng! Con thích vẽ gì cứ nhập vào, Thầy và AI sẽ tạo ngay tranh mẫu cho con ngắm nha!';
+          msg = `Chào mừng con đến với Xưởng Ý Tưởng! Con thích vẽ gì cứ nhập vào, ${pronoun} và AI sẽ tạo ngay tranh mẫu cho con ngắm nha!`;
           break;
         default:
-          msg = 'Thầy luôn ở đây đồng hành cùng con sáng tạo mĩ thuật!';
+          msg = `${pronoun} luôn ở đây đồng hành cùng con sáng tạo mĩ thuật!`;
       }
     }
 
     setCurrentMessage(msg);
-  }, [activeTab, currentUnit, currentSlideIndex, isTvMode]);
+  }, [activeTab, currentUnit, currentSlideIndex, isTvMode, teacher]);
 
   const speakCurrentMessage = () => {
     if (isSpeaking) {
@@ -87,7 +93,7 @@ export default function TeacherBubble({
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-xs font-black text-amber-800">
-                {isTvMode ? '📺 Chế Độ Smart TV:' : 'Thầy Giáo Mĩ Thuật Đang Giảng:'}
+                {isTvMode ? '📺 Chế Độ Smart TV:' : `${teacherTitle} Mĩ Thuật Đang Giảng:`}
               </span>
             </div>
 
@@ -98,10 +104,10 @@ export default function TeacherBubble({
                   ? 'bg-rose-500 text-white animate-pulse shadow-sm'
                   : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
               }`}
-              title="Nghe Thầy nói"
+              title={`Nghe ${pronoun} nói`}
             >
               {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-              <span>{isSpeaking ? 'Dừng' : 'Nghe Thầy'}</span>
+              <span>{isSpeaking ? 'Dừng' : `Nghe ${pronoun}`}</span>
             </button>
           </div>
 
@@ -155,7 +161,7 @@ export default function TeacherBubble({
             onClick={() => setIsOpen(true)}
             className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-2xl shadow-lg border-2 border-amber-300 text-xs font-black text-amber-900 hover:scale-105 active:scale-95 transition flex items-center gap-1"
           >
-            <span>💬 Thầy đang dặn dò</span>
+            <span>💬 {pronoun} đang dặn dò</span>
           </button>
         )}
 
@@ -168,7 +174,7 @@ export default function TeacherBubble({
             }
           }}
           className="relative group cursor-pointer"
-          title="Bấm vào Thầy để nghe dặn dò hoặc đóng/mở bóng thoại"
+          title={`Bấm vào ${pronoun} để nghe dặn dò hoặc đóng/mở bóng thoại`}
         >
           {/* Animated Glow Halo */}
           <div className={`absolute -inset-1 bg-gradient-to-r from-amber-400 via-rose-400 to-blue-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300 ${isSpeaking ? 'animate-spin' : 'animate-pulse'}`} />
@@ -176,8 +182,8 @@ export default function TeacherBubble({
           {/* Avatar Image */}
           <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center">
             <img
-              src="./teacher.jpg"
-              alt="Thầy Giáo Mĩ Thuật"
+              src={avatarUrl}
+              alt={teacherName}
               className="w-full h-full object-cover transform group-hover:scale-110 transition duration-300"
               onError={(e) => {
                 e.currentTarget.onerror = null;

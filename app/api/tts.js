@@ -69,8 +69,14 @@ export default async function handler(req, res) {
     return res.status(400).send('Empty text');
   }
 
-  if (ttsCache.has(cleanText)) {
-    const cached = ttsCache.get(cleanText);
+  const voiceParam = (req.query && req.query.voice) || 'male';
+  const voiceName = (voiceParam === 'female' || voiceParam === 'vi-VN-HoaiMyNeural' || String(voiceParam).toLowerCase().includes('nu') || String(voiceParam).toLowerCase().includes('hoaimy'))
+    ? 'vi-VN-HoaiMyNeural'
+    : 'vi-VN-NamMinhNeural';
+  const cacheKey = `${voiceName}_${cleanText}`;
+
+  if (ttsCache.has(cacheKey)) {
+    const cached = ttsCache.get(cacheKey);
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Length', cached.length);
     res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
@@ -95,7 +101,7 @@ export default async function handler(req, res) {
         const timeout = setTimeout(() => rejEdge(new Error('Edge TTS timeout')), 4500);
         try {
           const tts = new MsEdgeTTS();
-          await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+          await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
           const { audioStream } = tts.toStream(cleanText);
           const chunks = [];
           audioStream.on('data', (c) => chunks.push(c));

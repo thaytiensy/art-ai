@@ -34,9 +34,11 @@ export default defineConfig({
               .slice(0, 600)
               .trim();
 
-            // 100% Thầy giáo Mĩ thuật (vi-VN-NamMinhNeural)
-            const voice = 'vi-VN-NamMinhNeural';
-            const cacheKey = cleanText;
+            const voiceParam = url.searchParams.get('voice') || 'male';
+            const voice = (voiceParam === 'female' || voiceParam === 'vi-VN-HoaiMyNeural' || String(voiceParam).toLowerCase().includes('nu') || String(voiceParam).toLowerCase().includes('hoaimy'))
+              ? 'vi-VN-HoaiMyNeural'
+              : 'vi-VN-NamMinhNeural';
+            const cacheKey = `${voice}_${cleanText}`;
 
             // Check cache for instant playback
             if (ttsCache.has(cacheKey)) {
@@ -55,7 +57,7 @@ export default defineConfig({
             try {
               const { MsEdgeTTS, OUTPUT_FORMAT } = await import('msedge-tts');
               const tts = new MsEdgeTTS();
-              await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+              await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
               const { audioStream } = tts.toStream(cleanText);
 
               res.writeHead(200, {

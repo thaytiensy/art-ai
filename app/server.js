@@ -79,8 +79,14 @@ function handleTts(url, res) {
     .slice(0, 600)
     .trim();
 
-  if (ttsCache.has(cleanText)) {
-    const buf = ttsCache.get(cleanText);
+  const voiceParam = url.searchParams.get('voice') || 'male';
+  const voice = (voiceParam === 'female' || voiceParam === 'vi-VN-HoaiMyNeural' || String(voiceParam).toLowerCase().includes('nu') || String(voiceParam).toLowerCase().includes('hoaimy'))
+    ? 'vi-VN-HoaiMyNeural'
+    : 'vi-VN-NamMinhNeural';
+  const cacheKey = `${voice}_${cleanText}`;
+
+  if (ttsCache.has(cacheKey)) {
+    const buf = ttsCache.get(cacheKey);
     res.writeHead(200, {
       'Content-Type': 'audio/mpeg',
       'Content-Length': buf.length,
@@ -94,7 +100,7 @@ function handleTts(url, res) {
   try {
     const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
     const tts = new MsEdgeTTS();
-    await tts.setMetadata('vi-VN-NamMinhNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(cleanText);
 
     res.writeHead(200, {

@@ -69,7 +69,7 @@ const VIETNAMESE_KID_IDEAS = [
   { label: '🌸 Đầm Sen Làng Quê', idea: 'bông hoa sen hồng nở rộ thơm ngát bên đầm nước trong lành' }
 ];
 
-export default function InspirationView({ onSendToCanvas, isTvMode = false }) {
+export default function InspirationView({ onSendToCanvas, isTvMode = false, teacher }) {
   const [customPrompt, setCustomPrompt] = useState('');
   const [selectedStyle, setSelectedStyle] = useState(ART_STYLES[0]);
   const [generatedImageUrl, setGeneratedImageUrl] = useState(
@@ -79,6 +79,9 @@ export default function InspirationView({ onSendToCanvas, isTvMode = false }) {
   const [masterpieces, setMasterpieces] = useState([]);
   const [seed, setSeed] = useState(Date.now());
   const [isCopied, setIsCopied] = useState(false);
+
+  const teacherName = teacher?.name || 'Thầy Cọ Nhí';
+  const avatarUrl = teacher?.avatarUrl || './teacher.jpg';
 
   useEffect(() => {
     fetchMasterpieceArtworks().then(setMasterpieces);
@@ -166,8 +169,8 @@ export default function InspirationView({ onSendToCanvas, isTvMode = false }) {
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-xl shrink-0 bg-white">
             <img
-              src="./teacher.jpg"
-              alt="Thầy Cọ Nhí"
+              src={avatarUrl}
+              alt={teacherName}
               className="w-full h-full object-cover animate-bounce-gentle"
               onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
             />

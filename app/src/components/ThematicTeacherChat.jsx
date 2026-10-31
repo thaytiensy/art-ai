@@ -141,8 +141,25 @@ export default function ThematicTeacherChat({
   const slides = selectedUnit.powerpointSlides || [];
   const currentSlide = slides[currentSlideIndex] || slides[0];
 
+  // Sequential Auto-Lecture Engine (Giảng Bài Tuần Tự Theo Các Hoạt Động Giáo Án)
+  const [isAutoLecturing, setIsAutoLecturing] = useState(false);
+  const [autoLecturePaused, setAutoLecturePaused] = useState(false);
+  const [autoLectureCountdown, setAutoLectureCountdown] = useState(null);
+  const autoLectureTimerRef = useRef(null);
+
+  // Clean up auto lecture timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoLectureTimerRef.current) {
+        clearInterval(autoLectureTimerRef.current);
+        clearTimeout(autoLectureTimerRef.current);
+      }
+    };
+  }, []);
+
   // Update unit when grade changes
   const handleSelectGrade = (grade) => {
+    stopAutoLecture();
     setSelectedGrade(grade);
     const firstOfGrade = KET_NOI_TRI_THUC_DATA.find(u => u.grade === grade);
     if (firstOfGrade) {
@@ -156,6 +173,7 @@ export default function ThematicTeacherChat({
   };
 
   const handleSelectUnit = (unit) => {
+    stopAutoLecture();
     setSelectedUnit(unit);
     setCurrentSlideIndex(0);
     setQuizAnswered(false);
@@ -190,26 +208,167 @@ export default function ThematicTeacherChat({
     }
   }, [selectedUnit]);
 
+  const getLectureTextForIndex = (idx) => {
+    if (viewMode === 'word') {
+      const act = selectedUnit.wordLessonPlan?.activities?.[idx];
+      if (!act) return `Hoạt động ${idx + 1}`;
+      let text = `${act.phase}. Thời lượng ${act.duration || '5 phút'}. ${act.objective || ''}. `;
+      if (act.teacherAct) text += `Nội dung của ${pronoun}: ${act.teacherAct}. `;
+      if (act.teacherQuestions && act.teacherQuestions.length > 0) {
+        text += `${pronoun} có câu hỏi gợi mở cho các con: ${act.teacherQuestions[0]} `;
+      }
+      return text;
+    } else {
+      const s = slides[idx];
+      return s?.teacherLecture || `${pronoun} chào các con! Chúng ta cùng đến với ${s?.title || ('hoạt động ' + (idx + 1))}.`;
+    }
+  };
+
+  const stopAutoLecture = () => {
+    if (autoLectureTimerRef.current) {
+      clearInterval(autoLectureTimerRef.current);
+      clearTimeout(autoLectureTimerRef.current);
+      autoLectureTimerRef.current = null;
+    }
+    ttsService.stop();
+    setIsSpeaking(false);
+    setIsAutoLecturing(false);
+    setAutoLecturePaused(false);
+    setAutoLectureCountdown(null);
+  };
+
+  const playActivityLecture = (idx) => {
+    if (idx < 0 || idx >= slides.length) {
+      stopAutoLecture();
+      return;
+    }
+
+    if (autoLectureTimerRef.current) {
+      clearInterval(autoLectureTimerRef.current);
+      clearTimeout(autoLectureTimerRef.current);
+      autoLectureTimerRef.current = null;
+    }
+
+    setCurrentSlideIndex(idx);
+    setAutoLectureCountdown(null);
+    setAutoLecturePaused(false);
+
+    const lectureText = getLectureTextForIndex(idx);
+
+    ttsService.speak(
+      lectureText,
+      () => {
+        setIsSpeaking(true);
+      },
+      () => {
+        setIsSpeaking(false);
+
+        // If auto lecturing is still active and not paused
+        if (idx < slides.length - 1) {
+          let count = 3;
+          setAutoLectureCountdown(count);
+
+          const interval = setInterval(() => {
+            count -= 1;
+            if (count > 0) {
+              setAutoLectureCountdown(count);
+            } else {
+              clearInterval(interval);
+              setAutoLectureCountdown(null);
+              playActivityLecture(idx + 1);
+            }
+          }, 1000);
+
+          autoLectureTimerRef.current = interval;
+        } else {
+          // Finished all 5 activities!
+          confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+
+          const victoryMsg = `Tuyệt vời! ${pronoun} chúc mừng các con đã hoàn thành xuất sắc toàn bộ 5 hoạt động của bài học "${selectedUnit.title}"! Các con hãy cùng nhau bước vào Bảng vẽ để thực hành sáng tạo tác phẩm thật đẹp nhé!`;
+          ttsService.speak(
+            victoryMsg,
+            () => setIsSpeaking(true),
+            () => {
+              setIsSpeaking(false);
+              setIsAutoLecturing(false);
+            }
+          );
+        }
+      }
+    );
+  };
+
+  const startAutoLecture = (startIdx = 0) => {
+    setIsAutoLecturing(true);
+    setAutoLecturePaused(false);
+    playActivityLecture(startIdx);
+  };
+
+  const pauseAutoLecture = () => {
+    if (autoLectureTimerRef.current) {
+      clearInterval(autoLectureTimerRef.current);
+      clearTimeout(autoLectureTimerRef.current);
+      autoLectureTimerRef.current = null;
+    }
+    ttsService.stop();
+    setIsSpeaking(false);
+    setAutoLecturePaused(true);
+  };
+
+  const resumeAutoLecture = () => {
+    setAutoLecturePaused(false);
+    playActivityLecture(currentSlideIndex);
+  };
+
+  const autoNextActivity = () => {
+    if (currentSlideIndex < slides.length - 1) {
+      if (autoLectureTimerRef.current) {
+        clearInterval(autoLectureTimerRef.current);
+        clearTimeout(autoLectureTimerRef.current);
+        autoLectureTimerRef.current = null;
+      }
+      playActivityLecture(currentSlideIndex + 1);
+    }
+  };
+
+  const autoPrevActivity = () => {
+    if (currentSlideIndex > 0) {
+      if (autoLectureTimerRef.current) {
+        clearInterval(autoLectureTimerRef.current);
+        clearTimeout(autoLectureTimerRef.current);
+        autoLectureTimerRef.current = null;
+      }
+      playActivityLecture(currentSlideIndex - 1);
+    }
+  };
+
   // Next / Prev Slide & Direct Navigation
   const goToSlide = (idx) => {
+    if (isAutoLecturing) stopAutoLecture();
     if (idx >= 0 && idx < slides.length) {
       setCurrentSlideIndex(idx);
     }
   };
 
   const goToNextSlide = () => {
+    if (isAutoLecturing) stopAutoLecture();
     if (currentSlideIndex < slides.length - 1) {
       setCurrentSlideIndex(prev => prev + 1);
     }
   };
 
   const goToPrevSlide = () => {
+    if (isAutoLecturing) stopAutoLecture();
     if (currentSlideIndex > 0) {
       setCurrentSlideIndex(prev => prev - 1);
     }
   };
 
-  // When switching slides, auto speak lecture if voice is enabled
+  // When switching slides manually, auto speak lecture if voice is enabled and not in auto lecture
   useEffect(() => {
     setQuizAnswered(false);
     setSelectedQuizOption(null);
@@ -221,7 +380,7 @@ export default function ThematicTeacherChat({
     setIsWhiteScreen(false);
     clearPenCanvas();
 
-    if (viewMode === 'powerpoint' && voiceEnabled && currentSlide?.teacherLecture) {
+    if (!isAutoLecturing && viewMode === 'powerpoint' && voiceEnabled && currentSlide?.teacherLecture) {
       const timer = setTimeout(() => {
         ttsService.speak(
           currentSlide.teacherLecture,
@@ -231,7 +390,7 @@ export default function ThematicTeacherChat({
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [currentSlideIndex, selectedUnit, viewMode]);
+  }, [currentSlideIndex, selectedUnit, viewMode, isAutoLecturing]);
 
   // Universal Keyboard, Remote & Clicker Navigation Engine
   useEffect(() => {
@@ -965,6 +1124,39 @@ export default function ThematicTeacherChat({
                   })}
 
                   <div className="flex items-center gap-1.5 ml-auto">
+                    {/* Nút Bắt Đầu / Trạng Thái Giảng Tự Động 5 Hoạt Động */}
+                    {!isAutoLecturing ? (
+                      <button
+                        onClick={() => startAutoLecture(0)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-xs shadow-md transition hover:scale-105 active:scale-95 animate-pulse"
+                        title={`Bắt đầu để ${teacherName} tự động giảng bài tuần tự theo 5 hoạt động của giáo án`}
+                      >
+                        <Play className="w-3.5 h-3.5 fill-white" />
+                        <span>▶️ Giảng Tự Động 5 Hoạt Động</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-1 bg-black/40 backdrop-blur px-2.5 py-1 rounded-xl border border-white/30">
+                        <span className="text-[11px] font-black text-emerald-300 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                          <span>HĐ {currentSlideIndex + 1}/{slides.length}</span>
+                        </span>
+                        <button
+                          onClick={autoLecturePaused ? resumeAutoLecture : pauseAutoLecture}
+                          className="px-2 py-0.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition text-xs font-black"
+                          title={autoLecturePaused ? "Tiếp tục" : "Tạm dừng"}
+                        >
+                          {autoLecturePaused ? '▶️ Tiếp' : '⏸️ Dừng'}
+                        </button>
+                        <button
+                          onClick={stopAutoLecture}
+                          className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition text-xs font-black"
+                          title="Kết thúc giảng tự động"
+                        >
+                          ⏹️ Thoát
+                        </button>
+                      </div>
+                    )}
+
                     {/* Nút Chế độ Smart TV & Màn hình lớn */}
                     <button
                       onClick={() => setIsTvMode(prev => !prev)}
@@ -1114,6 +1306,97 @@ export default function ThematicTeacherChat({
                       </span>
                     </div>
                   </div>
+
+                  {/* Floating Auto-Lecture HUD Banner */}
+                  {isAutoLecturing && (
+                    <div className="my-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white p-3.5 sm:p-4 rounded-2xl shadow-xl flex items-center justify-between flex-wrap gap-3 border-2 border-emerald-300 animate-in slide-in-from-top-2">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <img
+                            src={avatarUrl}
+                            alt={teacherName}
+                            className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover border-2 border-white shadow"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
+                          />
+                          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full animate-ping" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-full bg-white/20 font-black text-[10px] tracking-wide uppercase">
+                              🎙️ AI {teacherName} Đang Giảng Tự Động
+                            </span>
+                            <span className="text-xs font-bold text-emerald-200">
+                              {slides[currentSlideIndex]?.phase || `Hoạt động ${currentSlideIndex + 1}`} ({currentSlideIndex + 1}/{slides.length})
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm font-black text-white mt-0.5 flex items-center gap-2">
+                            {autoLectureCountdown !== null ? (
+                              <span className="text-amber-200 animate-pulse flex items-center gap-1.5 font-black">
+                                <span className="text-base">⏳</span>
+                                <span>Chuyển sang hoạt động tiếp theo trong {autoLectureCountdown} giây...</span>
+                              </span>
+                            ) : (
+                              <span>
+                                {autoLecturePaused ? '⏸️ Đang tạm dừng bài giảng' : '🔊 ' + (isSpeaking ? 'Đang thuyết minh bài học...' : 'Đang chuyển giao hoạt động...')}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* HUD Navigation Controls */}
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        <button
+                          onClick={autoPrevActivity}
+                          disabled={currentSlideIndex === 0}
+                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white text-xs font-bold transition flex items-center gap-1"
+                          title="Về hoạt động trước"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Trước</span>
+                        </button>
+
+                        {autoLecturePaused ? (
+                          <button
+                            onClick={resumeAutoLecture}
+                            className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-gray-950 text-xs font-black transition flex items-center gap-1 shadow"
+                            title="Tiếp tục bài giảng"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <span>Tiếp Tục</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={pauseAutoLecture}
+                            className="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition flex items-center gap-1"
+                            title="Tạm dừng bài giảng"
+                          >
+                            <span>⏸️</span>
+                            <span>Tạm Dừng</span>
+                          </button>
+                        )}
+
+                        <button
+                          onClick={autoNextActivity}
+                          disabled={currentSlideIndex === slides.length - 1}
+                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white text-xs font-bold transition flex items-center gap-1"
+                          title="Sang hoạt động tiếp theo"
+                        >
+                          <span className="hidden sm:inline">Tiếp</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={stopAutoLecture}
+                          className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition flex items-center gap-1 shadow"
+                          title="Dừng chế độ giảng tự động"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>Dừng</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Slide Content Body: 2 Cột (Trái: Sư phạm & Đàm thoại Thầy - Trò; Phải: Tranh Mẫu Trực Quan SGK) */}
                   <div className="my-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -1635,7 +1918,7 @@ export default function ThematicTeacherChat({
                       }`}
                     >
                       {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                      <span>{isSpeaking ? 'Dừng' : 'Nghe Thầy'}</span>
+                      <span>{isSpeaking ? 'Dừng' : `Nghe ${pronoun}`}</span>
                     </button>
                   </div>
                 </div>
@@ -1747,7 +2030,7 @@ export default function ThematicTeacherChat({
               <button
                 onClick={toggleCurrentSlideSpeech}
                 className={`p-2 rounded-xl transition ${isSpeaking ? 'bg-rose-500' : 'bg-white/10'}`}
-                title="Nghe Thầy giảng"
+                title={`Nghe ${pronoun} giảng`}
               >
                 {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
@@ -2026,7 +2309,7 @@ export default function ThematicTeacherChat({
                         </div>
                         <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
                           <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">V</span>
-                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Nghe Thầy giảng</span>
+                          <span className="block text-[11px] font-bold text-gray-700 mt-1">Nghe {pronoun} giảng</span>
                         </div>
                         <div className="p-2 bg-gray-50 rounded-xl border border-gray-200 text-center">
                           <span className="font-mono bg-white px-2 py-0.5 rounded border border-gray-300 font-black text-amber-700">M</span>
@@ -2085,14 +2368,29 @@ export default function ThematicTeacherChat({
                   </span>
                 </div>
 
-                <button
-                  onClick={downloadWordPlan}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow hover:scale-105 transition"
-                  title="Tải giáo án Word (.doc) về máy tính"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Tải Giáo Án (.doc)</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => isAutoLecturing ? stopAutoLecture() : startAutoLecture(0)}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-black rounded-xl shadow transition ${
+                      isAutoLecturing
+                        ? 'bg-rose-600 hover:bg-rose-700'
+                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 animate-pulse'
+                    }`}
+                    title={`Để ${teacherName} đọc và giảng bài tuần tự theo 5 hoạt động của giáo án`}
+                  >
+                    {isAutoLecturing ? <X className="w-4 h-4" /> : <Play className="w-4 h-4 fill-white" />}
+                    <span>{isAutoLecturing ? 'Dừng Đọc Giáo Án' : `AI ${teacherName} Đọc Giáo Án Tuần Tự`}</span>
+                  </button>
+
+                  <button
+                    onClick={downloadWordPlan}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow hover:scale-105 transition"
+                    title="Tải giáo án Word (.doc) về máy tính"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Tải Giáo Án (.doc)</span>
+                  </button>
+                </div>
               </div>
 
               {/* Word Document Preview */}
@@ -2155,9 +2453,24 @@ export default function ThematicTeacherChat({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-blue-100 bg-white">
-                        {selectedUnit.wordLessonPlan.activities.map((act, i) => (
-                          <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'}>
+                        {selectedUnit.wordLessonPlan.activities.map((act, i) => {
+                          const isCurrentActive = isAutoLecturing && currentSlideIndex === i;
+                          return (
+                          <tr 
+                            key={i} 
+                            className={`transition-all duration-300 ${
+                              isCurrentActive 
+                                ? 'bg-amber-100/90 ring-4 ring-amber-400 border-2 border-amber-500 shadow-md scale-[1.01]' 
+                                : (i % 2 === 0 ? 'bg-white' : 'bg-blue-50/30')
+                            }`}
+                          >
                             <td className="p-3 border border-blue-100 align-top">
+                              {isCurrentActive && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 mb-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[10px] shadow-sm animate-pulse">
+                                  <span>🔊</span>
+                                  <span>{teacherName} Đang Giảng Hoạt Động Này</span>
+                                </span>
+                              )}
                               <span className="font-black text-blue-950 block text-xs sm:text-sm">
                                 {act.phase}
                               </span>
@@ -2216,7 +2529,8 @@ export default function ThematicTeacherChat({
                               </span>
                             </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

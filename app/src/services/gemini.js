@@ -114,6 +114,7 @@ export async function analyzeKidsArtwork(imageBase64, apiKey, promptContext = ''
 
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
+  const teacherTitle = teacher?.title || (teacher?.gender === 'female' ? 'Cô giáo' : 'Thầy giáo');
 
   // Chạy phân tích thị giác quang học trực tiếp từ ảnh của bé
   const visualStats = await analyzeCanvasPixels(fullDataUrl);
@@ -126,8 +127,8 @@ export async function analyzeKidsArtwork(imageBase64, apiKey, promptContext = ''
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${trimmedKey}`;
 
       const prompt = `
-Bạn là "${teacherName}" - Thầy giáo Mĩ thuật Tiểu học (chuẩn GDPT 2018 - Thông tư 32/2018/TT-BGDĐT).
-Hãy xem kỹ bức tranh của học sinh gửi lên (Bé có nhắn: "${promptContext || 'Nhờ Thầy nhận xét bức tranh của con ạ'}").
+Bạn là "${teacherName}" - ${teacherTitle} Mĩ thuật Tiểu học (chuẩn GDPT 2018 - Thông tư 32/2018/TT-BGDĐT).
+Hãy xem kỹ bức tranh của học sinh gửi lên (Bé có nhắn: "${promptContext || `Nhờ ${pronoun} nhận xét bức tranh của con ạ`}").
 
 BẮT BUỘC TRẢ VỀ DẠNG JSON HỢP LỆ VỚI CÁC TRƯỜNG SAU (KHÔNG DÙNG MARKDOWN CODEBLOCK, CHỈ TRẢ VỀ JSON THUẦN):
 {
@@ -283,6 +284,7 @@ function buildSmartPedagogicalCritique(stats, context = '', teacher = { name: 'T
 export async function generateTeacherResponse(userMessage, unit, apiKey, teacher = { name: 'Thầy Cọ Nhí', pronoun: 'Thầy' }) {
   const teacherName = teacher?.name || 'Thầy Cọ Nhí';
   const pronoun = teacher?.pronoun || 'Thầy';
+  const teacherTitle = teacher?.title || (teacher?.gender === 'female' ? 'Cô giáo' : 'Thầy giáo');
   const unitTitle = unit?.title || 'Bài học Mĩ thuật';
   const unitNumber = unit?.unitNumber || '';
   const grade = unit?.grade || 1;
@@ -312,16 +314,16 @@ export async function generateTeacherResponse(userMessage, unit, apiKey, teacher
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Bạn là "${teacherName}" - Thầy giáo Mĩ thuật Tiểu học tận tâm, am hiểu sâu sắc bộ sách "Kết nối tri thức với cuộc sống" (Chuẩn GDPT 2018).
+                text: `Bạn là "${teacherName}" - ${teacherTitle} Mĩ thuật Tiểu học tận tâm, am hiểu sâu sắc bộ sách "Kết nối tri thức với cuộc sống" (Chuẩn GDPT 2018).
 THÔNG TIN BÀI HỌC HIỆN TẠI ĐANG DẠY:
 - Khối lớp: Lớp ${grade}
 - Chủ đề: "${unitTitle}" (${unitNumber})
 - Tóm tắt nội dung bài học: "${summary}"
 - Yêu cầu cần đạt chuẩn SGK: ${objectives}
-- Tiến trình các hoạt động của Thầy:
+- Tiến trình các hoạt động của ${pronoun}:
 ${slidesInfo}
 
-Học sinh hỏi Thầy: "${userMessage}"
+Học sinh hỏi ${pronoun}: "${userMessage}"
 
 YÊU CẦU SƯ PHẠM BẮT BUỘC:
 1. Trả lời BÁM SÁT 100% ĐÚNG nội dung bài học "${unitTitle}". Hướng dẫn cụ thể, dễ hiểu, phù hợp với học sinh tiểu học.

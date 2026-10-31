@@ -28,6 +28,33 @@ import { KET_NOI_TRI_THUC_DATA } from './data/ketNoiTriThucCurriculum';
 import { getContextAwareGuidance, SMART_TV_HOTKEYS, APP_SECTIONS } from './services/aiContextEngine';
 import { ttsService } from './services/tts';
 
+export const TEACHERS = {
+  male: {
+    id: 'male',
+    name: 'Thầy Cọ Nhí',
+    pronoun: 'Thầy',
+    title: 'Thầy giáo',
+    avatarUrl: './teacher.jpg',
+    fallbackEmoji: '👨‍🏫',
+    gender: 'male',
+    voiceName: 'vi-VN-NamMinhNeural',
+    label: 'Thầy Cọ Nhí (Giọng Nam)',
+    badge: '👨‍🏫 Thầy Cọ Nhí'
+  },
+  female: {
+    id: 'female',
+    name: 'Cô Hoài My',
+    pronoun: 'Cô',
+    title: 'Cô giáo',
+    avatarUrl: './teacher_female.jpg',
+    fallbackEmoji: '👩‍🏫',
+    gender: 'female',
+    voiceName: 'vi-VN-HoaiMyNeural',
+    label: 'Cô Hoài My (Giọng Nữ)',
+    badge: '👩‍🏫 Cô Hoài My'
+  }
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('thematicChat');
   const [apiKey, setApiKey] = useState('');
@@ -46,15 +73,23 @@ export default function App() {
   const [aiHelpQuery, setAiHelpQuery] = useState('');
   const [aiHelpResponse, setAiHelpResponse] = useState(null);
 
-  // 100% Persona: Thầy Giáo Mĩ Thuật (Thầy Cọ Nhí với ảnh chân dung thực tế)
-  const teacher = { 
-    name: 'Thầy Cọ Nhí', 
-    pronoun: 'Thầy', 
-    title: 'Thầy giáo', 
-    avatarUrl: './teacher.jpg',
-    fallbackEmoji: '👨‍🏫',
-    gender: 'male' 
+  // Dual Teacher Model: Thầy Cọ Nhí (Nam) & Cô Hoài My (Nữ)
+  const [selectedTeacherId, setSelectedTeacherId] = useState(() => {
+    return localStorage.getItem('ARTED_SELECTED_TEACHER') || 'male';
+  });
+
+  const teacher = TEACHERS[selectedTeacherId] || TEACHERS.male;
+
+  const handleSelectTeacher = (teacherId) => {
+    const nextId = teacherId === 'female' ? 'female' : 'male';
+    setSelectedTeacherId(nextId);
+    localStorage.setItem('ARTED_SELECTED_TEACHER', nextId);
+    ttsService.setVoice(nextId);
   };
+
+  useEffect(() => {
+    ttsService.setVoice(teacher.gender);
+  }, [teacher]);
 
   // Load API Key from localStorage
   useEffect(() => {
@@ -194,10 +229,44 @@ export default function App() {
                   </span>
                 )}
               </div>
-              <p className="text-[11px] sm:text-xs font-bold text-gray-500 flex items-center gap-1">
-                <span>{teacher.name} Dạy Mĩ Thuật Trực Tuyến</span>
-                <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[11px] sm:text-xs font-bold text-gray-500 flex items-center gap-1">
+                  <span>{teacher.name} Dạy Mĩ Thuật</span>
+                  <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
+                </p>
+
+                {/* Chọn Thầy / Cô Trực Quan */}
+                <div className="flex items-center gap-1 bg-amber-100/70 p-0.5 rounded-xl border border-amber-300">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectTeacher('male');
+                    }}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black transition ${
+                      teacher.id === 'male'
+                        ? 'bg-amber-500 text-white shadow-xs'
+                        : 'text-gray-700 hover:bg-amber-200/60'
+                    }`}
+                    title="Chọn Thầy Cọ Nhí (Giọng Nam vi-VN-NamMinhNeural)"
+                  >
+                    <span>👨‍🏫 Thầy</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectTeacher('female');
+                    }}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black transition ${
+                      teacher.id === 'female'
+                        ? 'bg-rose-500 text-white shadow-xs'
+                        : 'text-gray-700 hover:bg-rose-200/60'
+                    }`}
+                    title="Chọn Cô Hoài My (Giọng Nữ vi-VN-HoaiMyNeural)"
+                  >
+                    <span>👩‍🏫 Cô</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -372,6 +441,7 @@ export default function App() {
 
         {activeTab === 'inspiration' && (
           <InspirationView
+            teacher={teacher}
             onSendToCanvas={(imgUrl) => {
               setCanvasTemplate(imgUrl);
               setActiveTab('canvas');
@@ -451,6 +521,7 @@ export default function App() {
 
       {/* Floating Teacher Lecture Bubble with Context Engine */}
       <TeacherBubble
+        teacher={teacher}
         activeTab={activeTab}
         currentUnit={currentUnit}
         currentSlideIndex={currentSlideIndex}
@@ -467,8 +538,8 @@ export default function App() {
       {/* Footer */}
       <footer className="mt-auto bg-white/70 backdrop-blur border-t border-pink-100 py-4 px-4 text-center text-xs font-bold text-gray-500">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>🎨 ART AI • Thầy Giáo Mĩ Thuật Dạy Học Tiếng Việt (Giọng Nam Thầy Cọ Nhí)</span>
-          <span className="text-gray-400">Chuẩn GDPT 2018 Lớp 1 - 5 • Microsoft Edge Neural TTS vi-VN-NamMinhNeural</span>
+          <span>🎨 ART AI • {teacher.title} Mĩ Thuật Dạy Học Tiếng Việt ({teacher.label})</span>
+          <span className="text-gray-400">Chuẩn GDPT 2018 Lớp 1 - 5 • Microsoft Edge Neural TTS {teacher.voiceName}</span>
         </div>
       </footer>
 
@@ -494,8 +565,8 @@ export default function App() {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-amber-400 shadow bg-white">
                   <img
-                    src="./teacher.jpg"
-                    alt="Thầy Cọ Nhí"
+                    src={teacher.avatarUrl}
+                    alt={teacher.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
@@ -505,7 +576,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-gray-800">
-                    Trợ Lý AI Thầy Cọ Nhí
+                    Trợ Lý AI {teacher.name}
                   </h3>
                   <p className="text-xs font-bold text-amber-700">
                     Hiểu mọi chức năng của app, chuẩn GDPT 2018 & hỗ trợ Smart TV
