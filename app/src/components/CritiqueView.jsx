@@ -44,7 +44,7 @@ const SAMPLE_ARTWORKS = [
   }
 ];
 
-export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, teacher }) {
+export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, teacher, isTvMode = false }) {
   const [image, setImage] = useState(initialImage || null);
   const [analyzing, setAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -122,16 +122,17 @@ export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, tea
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-3 sm:p-6 flex flex-col gap-6">
+    <div className={`max-w-5xl mx-auto p-3 sm:p-6 flex flex-col gap-6 ${isTvMode ? 'text-lg max-w-7xl' : ''}`}>
       {/* Title Header */}
-      <div className="bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between flex-wrap gap-4">
+      <div className={`bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between flex-wrap gap-4 ${isTvMode ? 'p-8 border-4 border-amber-300' : ''}`}>
         <div className="flex items-center gap-4">
           <div className="relative">
             {teacher?.avatarUrl ? (
               <img
                 src={teacher.avatarUrl}
                 alt={teacherName}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-300 shadow-xl ring-2 ring-white/50 animate-bounce-gentle"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-300 shadow-xl ring-2 ring-white/50 animate-bounce-gentle"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
               />
             ) : (
               <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-4xl shadow-inner animate-bounce-gentle">
@@ -286,6 +287,7 @@ export default function CritiqueView({ initialImage, apiKey, onBackToCanvas, tea
                     src={teacher.avatarUrl}
                     alt={teacherName}
                     className="w-20 h-20 rounded-3xl object-cover border-4 border-amber-400 shadow-xl"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
                   />
                   <span className="absolute -bottom-2 -right-2 text-2xl animate-bounce">🔍</span>
                 </div>

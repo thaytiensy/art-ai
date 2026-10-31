@@ -37,7 +37,7 @@ const BRUSH_SIZES = [
 
 const STICKERS = ['⭐', '❤️', '🌸', '🌈', '☀️', '🐱', '🐶', '🚀', '🍦', '🎨'];
 
-export default function DrawingCanvas({ onAskTeacher, teacher, templateImage, onClearTemplate }) {
+export default function DrawingCanvas({ onAskTeacher, teacher, templateImage, onClearTemplate, isTvMode = false }) {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#EF4444');
@@ -227,9 +227,9 @@ export default function DrawingCanvas({ onAskTeacher, teacher, templateImage, on
   };
 
   return (
-    <div className="flex flex-col gap-4 max-w-6xl mx-auto p-2 sm:p-4">
+    <div className={`flex flex-col gap-4 max-w-6xl mx-auto p-2 sm:p-4 ${isTvMode ? 'text-lg max-w-7xl' : ''}`}>
       {/* Top Banner & Main Action */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-lg border-2 border-pink-200">
+      <div className={`flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-lg border-2 border-pink-200 ${isTvMode ? 'p-6 border-amber-300' : ''}`}>
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner animate-bounce-gentle">
             🎨

@@ -48,7 +48,9 @@ export default function ThematicTeacherChat({
   onGoToCritique, 
   teacher,
   onUnitChange,
-  onSlideChange
+  onSlideChange,
+  isTvMode: externalTvMode,
+  onToggleTvMode
 }) {
   const [selectedGrade, setSelectedGrade] = useState(1);
   const [selectedUnit, setSelectedUnit] = useState(KET_NOI_TRI_THUC_DATA[0]);
@@ -73,7 +75,18 @@ export default function ThematicTeacherChat({
   const [allAnswersRevealed, setAllAnswersRevealed] = useState(false);
 
   // Multi-Device & Presentation Controls State (Smart TV, Mobile, Mouse, Clicker)
-  const [isTvMode, setIsTvMode] = useState(false);
+  const [internalTvMode, setInternalTvMode] = useState(false);
+  const isTvMode = externalTvMode !== undefined ? externalTvMode : internalTvMode;
+  const setIsTvMode = (valOrFn) => {
+    if (typeof valOrFn === 'function') {
+      const nextVal = valOrFn(isTvMode);
+      if (onToggleTvMode && nextVal !== isTvMode) onToggleTvMode();
+      else setInternalTvMode(nextVal);
+    } else {
+      if (onToggleTvMode && valOrFn !== isTvMode) onToggleTvMode();
+      else setInternalTvMode(valOrFn);
+    }
+  };
   const [isBlackScreen, setIsBlackScreen] = useState(false);
   const [isWhiteScreen, setIsWhiteScreen] = useState(false);
   const [showDeviceControllerModal, setShowDeviceControllerModal] = useState(false);
@@ -733,6 +746,7 @@ export default function ThematicTeacherChat({
               src={avatarUrl}
               alt={teacherName}
               className="w-18 h-18 sm:w-20 sm:h-20 rounded-3xl object-cover border-4 border-amber-300 shadow-2xl ring-4 ring-white/30 animate-bounce-gentle"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
             />
             <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 border-2 border-white rounded-full flex items-center justify-center text-[10px]">
               ✓
@@ -1507,6 +1521,73 @@ export default function ThematicTeacherChat({
                           <Palette className="w-4 h-4" />
                           <span>Đưa Tranh Mẫu Này Vào Bảng Vẽ</span>
                         </button>
+
+                        {/* Sample Artworks Multi-View (Bốn Phân Môn Mĩ Thuật Lớp 3) */}
+                        {selectedUnit.sampleArtworks && selectedUnit.sampleArtworks.length > 0 && (
+                          <div className="flex flex-col gap-2 pt-2 border-t border-amber-200">
+                            <span className="text-[11px] font-black text-amber-900 flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                              <span>Bộ Tranh Mẫu Thị Phạm 4 Phân Môn:</span>
+                            </span>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {selectedUnit.sampleArtworks.map((art) => (
+                                <div
+                                  key={art.id}
+                                  className="p-2 rounded-xl border border-amber-200 bg-white hover:bg-amber-50 shadow-2xs flex flex-col justify-between gap-1 transition"
+                                >
+                                  <div>
+                                    <div className="flex items-center gap-1 font-black text-[11px] text-gray-800">
+                                      <span>{art.icon}</span>
+                                      <span className="truncate">{art.category}</span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-600 line-clamp-2 font-medium mt-0.5">
+                                      {art.description}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      if (onStartDrawingOnCanvas && art.imageUrl) {
+                                        onStartDrawingOnCanvas(art.imageUrl);
+                                      }
+                                    }}
+                                    className="text-[10px] font-black text-rose-600 hover:text-rose-700 flex items-center justify-end gap-0.5 mt-1"
+                                  >
+                                    <span>Vẽ Mẫu Này →</span>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Grade 4 Landscape Practice Task Card */}
+                        {selectedUnit.practiceTask && (
+                          <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 shadow-sm flex flex-col gap-1.5 mt-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-lg">🏞️</span>
+                              <h4 className="text-xs font-black text-emerald-900">
+                                {selectedUnit.practiceTask.title}
+                              </h4>
+                            </div>
+                            <p className="text-[10px] font-bold text-emerald-800 line-clamp-2">
+                              {selectedUnit.practiceTask.theme}
+                            </p>
+                            <div className="space-y-1 text-[10px] text-emerald-950 font-bold max-h-32 overflow-y-auto">
+                              {selectedUnit.practiceTask.guidelines.map((g, idx) => (
+                                <p key={idx} className="flex items-start gap-1">
+                                  <span className="text-emerald-600 shrink-0 font-black">✓</span>
+                                  <span>{g}</span>
+                                </p>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => onStartDrawingOnCanvas && onStartDrawingOnCanvas()}
+                              className="mt-1 py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-lg shadow-sm transition text-center"
+                            >
+                              🎨 Bắt Đầu Thực Hành Vẽ Phong Cảnh Ngay
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1519,6 +1600,7 @@ export default function ThematicTeacherChat({
                           src={avatarUrl}
                           alt={teacherName}
                           className="w-12 h-12 rounded-2xl object-cover border-2 border-amber-300 shadow"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
                         />
                         {isSpeaking && (
                           <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -1719,6 +1801,7 @@ export default function ThematicTeacherChat({
                       src={currentSlide.visualArt?.imageUrl || selectedUnit.visualArt?.imageUrl}
                       alt={selectedUnit.title}
                       className="w-full h-full object-contain"
+                      onError={() => setSlideImageError(true)}
                     />
                   ) : (
                     <div 
@@ -2231,6 +2314,7 @@ export default function ThematicTeacherChat({
                     src={avatarUrl}
                     alt={teacherName}
                     className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
                   />
                   <div>
                     <h4 className="font-black text-sm">Hỏi Thầy Về Bài: {selectedUnit.title}</h4>
@@ -2248,6 +2332,7 @@ export default function ThematicTeacherChat({
                     src={avatarUrl}
                     alt={teacherName}
                     className="w-8 h-8 rounded-xl object-cover border border-amber-300 shadow-sm shrink-0 mt-1"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
                   />
                   <div className="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-rose-100 max-w-[85%]">
                     <p className="text-xs sm:text-sm font-semibold text-gray-800">
@@ -2268,6 +2353,7 @@ export default function ThematicTeacherChat({
                           src={avatarUrl}
                           alt={teacherName}
                           className="w-8 h-8 rounded-xl object-cover border border-amber-300 shadow-sm shrink-0 mt-1"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-xl bg-pink-500 text-white flex items-center justify-center font-black text-xs shrink-0 mt-1 shadow-sm">
@@ -2292,6 +2378,10 @@ export default function ThematicTeacherChat({
                               src={m.imageUrl}
                               alt="Tranh mẫu của Thầy"
                               className="w-full h-auto max-h-48 object-cover"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&q=80';
+                              }}
                             />
                             <span className="block text-[10px] p-1 bg-black/60 text-white text-center font-bold">
                               🎨 Tranh mẫu tham khảo Thầy vẽ cho con

@@ -7722,16 +7722,16 @@ export const KET_NOI_TRI_THUC_DATA = [
     "tag": "Các thể loại",
     "summary": "Tìm hiểu các loại hình mĩ thuật đa dạng: Hội họa (vẽ tranh), Đồ họa (in tranh), Điêu khắc (nặn, tạc tượng), Mĩ thuật ứng dụng (thiết kế, thủ công); định hình tình yêu nghệ thuật.",
     "visualArt": {
-      "title": "Tranh mẫu SGK: Em Yêu Mĩ Thuật",
-      "themeKey": "art_supplies",
-      "caption": "Tác phẩm thị phạm chuẩn SGK Kết nối tri thức - Khám phá các yếu tố tạo hình và hòa sắc độc đáo của chủ đề Em Yêu Mĩ Thuật.",
-      "svg": "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 420\" width=\"100%\" height=\"100%\">\n          <rect width=\"600\" height=\"420\" rx=\"24\" fill=\"#eff6ff\"/>\n          <!-- Palette gỗ nghệ thuật -->\n          <ellipse cx=\"300\" cy=\"210\" rx=\"210\" ry=\"140\" fill=\"#fde68a\" stroke=\"#d97706\" stroke-width=\"6\"/>\n          <!-- Lỗ xỏ ngón tay -->\n          <ellipse cx=\"430\" cy=\"220\" rx=\"26\" ry=\"36\" fill=\"#eff6ff\" stroke=\"#d97706\" stroke-width=\"4\"/>\n          <!-- Các vệt màu trên Palette -->\n          <circle cx=\"170\" cy=\"180\" r=\"26\" fill=\"#ef4444\"/>\n          <circle cx=\"210\" cy=\"130\" r=\"26\" fill=\"#f97316\"/>\n          <circle cx=\"280\" cy=\"115\" r=\"26\" fill=\"#facc15\"/>\n          <circle cx=\"350\" cy=\"125\" r=\"26\" fill=\"#22c55e\"/>\n          <circle cx=\"405\" cy=\"165\" r=\"24\" fill=\"#3b82f6\"/>\n          <circle cx=\"200\" cy=\"250\" r=\"24\" fill=\"#a855f7\"/>\n          <circle cx=\"270\" cy=\"280\" r=\"25\" fill=\"#ec4899\"/>\n          <!-- Cọ vẽ mĩ thuật bắt chéo -->\n          <line x1=\"120\" y1=\"360\" x2=\"480\" y2=\"70\" stroke=\"#78350f\" stroke-width=\"12\" stroke-linecap=\"round\"/>\n          <polygon points=\"460,85 500,55 490,95\" fill=\"#f59e0b\"/>\n          <rect x=\"140\" y=\"370\" width=\"320\" height=\"34\" rx=\"17\" fill=\"#ffffff\" opacity=\"0.95\"/>\n          <text x=\"300\" y=\"392\" font-family=\"Nunito, sans-serif\" font-size=\"13\" font-weight=\"900\" text-anchor=\"middle\" fill=\"#1e3a8a\">\n            🎨 Đồ Dùng Mĩ Thuật: Bảng Màu & Cọ Vẽ Tươi Sáng\n          </text>\n        </svg>\n      ",
-      "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80",
-      "prompt": "beautiful hand-drawn artistic children textbook illustration about Em Yêu Mĩ Thuật, watercolor and colored pencil style on textured paper, harmonious vibrant colors, inspiring and high quality educational art",
+      "title": "Tranh mẫu SGK: Bốn Cánh Cửa Mĩ Thuật (Hội Họa, Đồ Họa, Điêu Khắc, Ứng Dụng)",
+      "themeKey": "art_genres_4",
+      "caption": "Tác phẩm thị phạm chuẩn SGK Kết nối tri thức Lớp 3 - Khám phá vẻ đẹp độc đáo của 4 thể loại mĩ thuật cơ bản.",
+      "imageUrl": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+      "prompt": "vibrant joyful children art textbook illustration showing the 4 branches of fine art: painting on easel, relief printmaking with leaves, colorful clay sculpture of cute animal, and handcrafted applied decorative art, bright watercolor style",
+      "svg": "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 420\" width=\"100%\" height=\"100%\">\n          <defs>\n            <linearGradient id=\"g3bg\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n              <stop offset=\"0%\" stop-color=\"#eff6ff\"/>\n              <stop offset=\"50%\" stop-color=\"#fdf4ff\"/>\n              <stop offset=\"100%\" stop-color=\"#fff7ed\"/>\n            </linearGradient>\n            <filter id=\"shadowG3\" x=\"-10%\" y=\"-10%\" width=\"120%\" height=\"120%\">\n              <feDropShadow dx=\"0\" dy=\"4\" stdDeviation=\"4\" flood-color=\"#000\" flood-opacity=\"0.12\"/>\n            </filter>\n          </defs>\n          <rect width=\"600\" height=\"420\" rx=\"24\" fill=\"url(#g3bg)\"/>\n          \n          <!-- Khung 1: HỘI HỌA (Giá vẽ & Tranh phong cảnh) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"25\" y=\"45\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#3b82f6\" stroke-width=\"3\"/>\n            <!-- Giá vẽ gỗ -->\n            <line x1=\"85\" y1=\"65\" x2=\"65\" y2=\"175\" stroke=\"#78350f\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <line x1=\"125\" y1=\"65\" x2=\"145\" y2=\"175\" stroke=\"#78350f\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <line x1=\"105\" y1=\"60\" x2=\"105\" y2=\"175\" stroke=\"#9a3412\" stroke-width=\"4\"/>\n            <!-- Tấm toan vẽ tranh phong cảnh -->\n            <rect x=\"65\" y=\"75\" width=\"80\" height=\"60\" rx=\"6\" fill=\"#fef08a\" stroke=\"#ca8a04\" stroke-width=\"2\"/>\n            <circle cx=\"85\" cy=\"90\" r=\"8\" fill=\"#f97316\"/>\n            <polygon points=\"65,115 95,95 115,115\" fill=\"#22c55e\"/>\n            <polygon points=\"95,115 125,90 145,115\" fill=\"#15803d\"/>\n            <rect x=\"65\" y=\"115\" width=\"80\" height=\"20\" fill=\"#38bdf8\"/>\n            <!-- Nhãn text -->\n            <rect x=\"155\" y=\"70\" width=\"115\" height=\"30\" rx=\"15\" fill=\"#dbeafe\"/>\n            <text x=\"212\" y=\"90\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"900\" fill=\"#1e40af\">1. HỘI HỌA</text>\n            <text x=\"212\" y=\"118\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Vẽ màu & phác nét</text>\n            <text x=\"212\" y=\"135\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#3b82f6\">Màu sáp • Màu nước</text>\n          </g>\n\n          <!-- Khung 2: ĐỒ HỌA IN TRANH (Lá cây & Khắc in nổi) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"315\" y=\"45\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#10b981\" stroke-width=\"3\"/>\n            <!-- Giấy in tranh và bản in hoa lá -->\n            <rect x=\"335\" y=\"65\" width=\"85\" height=\"115\" rx=\"8\" fill=\"#f0fdf4\" stroke=\"#86efac\" stroke-width=\"2\"/>\n            <!-- Chiếc lá in gân lá tinh xảo -->\n            <path d=\"M 377 80 Q 405 105 385 140 Q 355 130 377 80 Z\" fill=\"#22c55e\" opacity=\"0.85\"/>\n            <line x1=\"377\" y1=\"80\" x2=\"385\" y2=\"140\" stroke=\"#15803d\" stroke-width=\"2\"/>\n            <line x1=\"380\" y1=\"95\" x2=\"395\" y2=\"105\" stroke=\"#15803d\" stroke-width=\"1.5\"/>\n            <line x1=\"380\" y1=\"110\" x2=\"368\" y2=\"120\" stroke=\"#15803d\" stroke-width=\"1.5\"/>\n            <!-- Con lăn mực in nghệ thuật -->\n            <rect x=\"340\" y=\"145\" width=\"35\" height=\"12\" rx=\"4\" fill=\"#047857\"/>\n            <line x1=\"357\" y1=\"157\" x2=\"357\" y2=\"175\" stroke=\"#78350f\" stroke-width=\"3\"/>\n            <!-- Nhãn text -->\n            <rect x=\"430\" y=\"70\" width=\"130\" height=\"30\" rx=\"15\" fill=\"#d1fae5\"/>\n            <text x=\"495\" y=\"90\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"900\" fill=\"#065f46\">2. ĐỒ HỌA</text>\n            <text x=\"495\" y=\"118\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Tranh in nổi sáng tạo</text>\n            <text x=\"495\" y=\"135\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#10b981\">Gân lá • Củ quả • Xốp</text>\n          </g>\n\n          <!-- Khung 3: ĐIÊU KHẮC (Tượng đất nặn 3D) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"25\" y=\"225\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f59e0b\" stroke-width=\"3\"/>\n            <!-- Bục trưng bày tượng gỗ -->\n            <ellipse cx=\"105\" cy=\"345\" rx=\"45\" ry=\"12\" fill=\"#fed7aa\" stroke=\"#c2410c\" stroke-width=\"2\"/>\n            <!-- Tượng đất nặn chú voi 3D -->\n            <ellipse cx=\"105\" cy=\"305\" rx=\"30\" ry=\"24\" fill=\"#fb923c\"/>\n            <circle cx=\"85\" cy=\"285\" r=\"18\" fill=\"#f97316\"/>\n            <!-- Vòi voi vươn cao -->\n            <path d=\"M 75 290 Q 60 270 70 255\" fill=\"none\" stroke=\"#ea580c\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n            <circle cx=\"82\" cy=\"280\" r=\"3\" fill=\"#fff\"/>\n            <circle cx=\"82\" cy=\"280\" r=\"1.5\" fill=\"#000\"/>\n            <!-- Chân voi 3D -->\n            <rect x=\"85\" y=\"320\" width=\"10\" height=\"22\" rx=\"4\" fill=\"#ea580c\"/>\n            <rect x=\"115\" y=\"320\" width=\"10\" height=\"22\" rx=\"4\" fill=\"#ea580c\"/>\n            <!-- Nhãn text -->\n            <rect x=\"155\" y=\"245\" width=\"115\" height=\"30\" rx=\"15\" fill=\"#fef3c7\"/>\n            <text x=\"212\" y=\"265\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"900\" fill=\"#92400e\">3. ĐIÊU KHẮC</text>\n            <text x=\"212\" y=\"293\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Tạo hình 3 Chiều (3D)</text>\n            <text x=\"212\" y=\"310\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#d97706\">Đất nặn • Đất sét • Tạc</text>\n          </g>\n\n          <!-- Khung 4: MĨ THUẬT ỨNG DỤNG (Bưu thiếp & Trang trí đồ vật) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"315\" y=\"225\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#ec4899\" stroke-width=\"3\"/>\n            <!-- Bưu thiếp trang trí handmade -->\n            <rect x=\"335\" y=\"245\" width=\"85\" height=\"115\" rx=\"8\" fill=\"#fff1f2\" stroke=\"#fda4af\" stroke-width=\"2\"/>\n            <!-- Trái tim hoa văn cắt dán -->\n            <path d=\"M 377 275 C 365 255, 345 270, 377 305 C 409 270, 389 255, 377 275 Z\" fill=\"#f43f5e\"/>\n            <!-- Họa tiết chấm bi trang trí -->\n            <circle cx=\"355\" cy=\"330\" r=\"4\" fill=\"#facc15\"/>\n            <circle cx=\"377\" cy=\"335\" r=\"4\" fill=\"#38bdf8\"/>\n            <circle cx=\"399\" cy=\"330\" r=\"4\" fill=\"#a855f7\"/>\n            <!-- Nhãn text -->\n            <rect x=\"430\" y=\"245\" width=\"130\" height=\"30\" rx=\"15\" fill=\"#fce7f3\"/>\n            <text x=\"495\" y=\"265\" text-anchor=\"middle\" font-size=\"12\" font-weight=\"900\" fill=\"#9d174d\">4. MĨ THUẬT ỨNG DỤNG</text>\n            <text x=\"495\" y=\"293\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Làm đẹp cho đời sống</text>\n            <text x=\"495\" y=\"310\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#db2777\">Bưu thiếp • Khung tranh</text>\n          </g>\n\n          <!-- Tiêu đề chân tranh -->\n          <rect x=\"120\" y=\"390\" width=\"360\" height=\"24\" rx=\"12\" fill=\"#ffffff\" opacity=\"0.95\"/>\n          <text x=\"300\" y=\"406\" font-family=\"Nunito, sans-serif\" font-size=\"12\" font-weight=\"900\" text-anchor=\"middle\" fill=\"#1e3a8a\">\n            🎨 Bốn Phân Môn Mĩ Thuật GDPT 2018 Lớp 3 (Thầy Cọ Nhí Thị Phạm)\n          </text>\n        </svg>\n      ",
       "elements": {
-        "line": "Nét vẽ tự tin, đường nét mềm mại kết hợp hình khối hài hòa.",
-        "color": "Hòa sắc tươi sáng, tương phản ấn tượng giữa chủ thể chính và nền tranh.",
-        "composition": "Bố cục cân đối, trọng tâm nổi bật đúng nguyên lí thị giác mĩ thuật."
+        "line": "Đường nét phong phú kết hợp giữa nét cọ hội họa, đường gân in nổi đồ họa và nét khối điêu khắc.",
+        "color": "Hòa sắc 4 gam màu tương phản hài hòa: Lam (Hội họa), Lục (Đồ họa), Vàng cam (Điêu khắc) và Hồng đỏ (Ứng dụng).",
+        "composition": "Bố cục tứ phân (4 phần) rõ ràng, cân đối, giúp học sinh tiểu học dễ dàng nhận diện và ghi nhớ sâu sắc."
       }
     },
     "integrations": [
@@ -7895,9 +7895,9 @@ export const KET_NOI_TRI_THUC_DATA = [
         "slideNumber": 1,
         "phase": "1. Khởi động",
         "phaseIcon": "🎯",
-        "title": "1. KHỞI ĐỘNG: EM YÊU MĨ THUẬT",
+        "title": "1. KHỞI ĐỘNG: EM YÊU MĨ THUẬT & 4 CÁNH CỬA NGHỆ THUẬT",
         "subtitle": "Tiến trình 1: Khởi động (5 phút) • Khơi nguồn cảm hứng & Đố vui mĩ thuật",
-        "teacherLecture": "Thế giới Mĩ thuật rộng lớn bao la như một đại dương kì diệu! Không chỉ có vẽ tranh bằng cọ, mĩ thuật còn có nặn tượng điêu khắc, in tranh đồ họa và thiết kế những đồ vật xinh xắn cho đời sống. Cùng Thầy bước vào thế giới Em Yêu Mĩ Thuật nhé!",
+        "teacherLecture": "Thế giới Mĩ thuật rộng lớn bao la như một đại dương kì diệu! Không chỉ có vẽ tranh bằng cọ, mĩ thuật còn có 4 cánh cửa tuyệt đẹp: Hội họa (vẽ tranh), Đồ họa (in tranh), Điêu khắc (nặn tượng) và Mĩ thuật ứng dụng (thiết kế đời sống). Cùng Thầy bước vào khám phá nhé!",
         "bullets": [
           "Khám phá vẻ đẹp độc đáo của chủ đề Em Yêu Mĩ Thuật",
           "Quan sát hình ảnh thực tế và khơi nguồn cảm xúc nghệ thuật",
@@ -7913,39 +7913,39 @@ export const KET_NOI_TRI_THUC_DATA = [
         ],
         "expectedProduct": "Tâm thế hào hứng, câu trả lời nhận thức ban đầu của học sinh về chủ đề bài học.",
         "visualArt": {
-          "title": "Khởi động: Cảm hứng về Em Yêu Mĩ Thuật",
-          "themeKey": "art_supplies",
-          "caption": "Tác phẩm thị phạm chuẩn SGK Kết nối tri thức - Khám phá các yếu tố tạo hình và hòa sắc độc đáo của chủ đề Em Yêu Mĩ Thuật.",
-          "svg": "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 420\" width=\"100%\" height=\"100%\">\n          <rect width=\"600\" height=\"420\" rx=\"24\" fill=\"#eff6ff\"/>\n          <!-- Palette gỗ nghệ thuật -->\n          <ellipse cx=\"300\" cy=\"210\" rx=\"210\" ry=\"140\" fill=\"#fde68a\" stroke=\"#d97706\" stroke-width=\"6\"/>\n          <!-- Lỗ xỏ ngón tay -->\n          <ellipse cx=\"430\" cy=\"220\" rx=\"26\" ry=\"36\" fill=\"#eff6ff\" stroke=\"#d97706\" stroke-width=\"4\"/>\n          <!-- Các vệt màu trên Palette -->\n          <circle cx=\"170\" cy=\"180\" r=\"26\" fill=\"#ef4444\"/>\n          <circle cx=\"210\" cy=\"130\" r=\"26\" fill=\"#f97316\"/>\n          <circle cx=\"280\" cy=\"115\" r=\"26\" fill=\"#facc15\"/>\n          <circle cx=\"350\" cy=\"125\" r=\"26\" fill=\"#22c55e\"/>\n          <circle cx=\"405\" cy=\"165\" r=\"24\" fill=\"#3b82f6\"/>\n          <circle cx=\"200\" cy=\"250\" r=\"24\" fill=\"#a855f7\"/>\n          <circle cx=\"270\" cy=\"280\" r=\"25\" fill=\"#ec4899\"/>\n          <!-- Cọ vẽ mĩ thuật bắt chéo -->\n          <line x1=\"120\" y1=\"360\" x2=\"480\" y2=\"70\" stroke=\"#78350f\" stroke-width=\"12\" stroke-linecap=\"round\"/>\n          <polygon points=\"460,85 500,55 490,95\" fill=\"#f59e0b\"/>\n          <rect x=\"140\" y=\"370\" width=\"320\" height=\"34\" rx=\"17\" fill=\"#ffffff\" opacity=\"0.95\"/>\n          <text x=\"300\" y=\"392\" font-family=\"Nunito, sans-serif\" font-size=\"13\" font-weight=\"900\" text-anchor=\"middle\" fill=\"#1e3a8a\">\n            🎨 Đồ Dùng Mĩ Thuật: Bảng Màu & Cọ Vẽ Tươi Sáng\n          </text>\n        </svg>\n      ",
-          "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80",
-          "prompt": "beautiful hand-drawn artistic children textbook illustration about Em Yêu Mĩ Thuật, watercolor and colored pencil style on textured paper, harmonious vibrant colors, inspiring and high quality educational art, wide view, warm inviting atmosphere",
+          "title": "Tranh mẫu SGK: Bốn Cánh Cửa Mĩ Thuật (Hội Họa, Đồ Họa, Điêu Khắc, Ứng Dụng)",
+          "themeKey": "art_genres_4",
+          "caption": "Tác phẩm thị phạm chuẩn SGK Kết nối tri thức Lớp 3 - Khám phá vẻ đẹp độc đáo của 4 thể loại mĩ thuật cơ bản.",
+          "imageUrl": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+          "prompt": "vibrant joyful children art textbook illustration showing the 4 branches of fine art: painting on easel, relief printmaking with leaves, colorful clay sculpture of cute animal, and handcrafted applied decorative art, bright watercolor style",
+          "svg": "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 420\" width=\"100%\" height=\"100%\">\n          <defs>\n            <linearGradient id=\"g3bg\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n              <stop offset=\"0%\" stop-color=\"#eff6ff\"/>\n              <stop offset=\"50%\" stop-color=\"#fdf4ff\"/>\n              <stop offset=\"100%\" stop-color=\"#fff7ed\"/>\n            </linearGradient>\n            <filter id=\"shadowG3\" x=\"-10%\" y=\"-10%\" width=\"120%\" height=\"120%\">\n              <feDropShadow dx=\"0\" dy=\"4\" stdDeviation=\"4\" flood-color=\"#000\" flood-opacity=\"0.12\"/>\n            </filter>\n          </defs>\n          <rect width=\"600\" height=\"420\" rx=\"24\" fill=\"url(#g3bg)\"/>\n          \n          <!-- Khung 1: HỘI HỌA (Giá vẽ & Tranh phong cảnh) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"25\" y=\"45\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#3b82f6\" stroke-width=\"3\"/>\n            <!-- Giá vẽ gỗ -->\n            <line x1=\"85\" y1=\"65\" x2=\"65\" y2=\"175\" stroke=\"#78350f\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <line x1=\"125\" y1=\"65\" x2=\"145\" y2=\"175\" stroke=\"#78350f\" stroke-width=\"5\" stroke-linecap=\"round\"/>\n            <line x1=\"105\" y1=\"60\" x2=\"105\" y2=\"175\" stroke=\"#9a3412\" stroke-width=\"4\"/>\n            <!-- Tấm toan vẽ tranh phong cảnh -->\n            <rect x=\"65\" y=\"75\" width=\"80\" height=\"60\" rx=\"6\" fill=\"#fef08a\" stroke=\"#ca8a04\" stroke-width=\"2\"/>\n            <circle cx=\"85\" cy=\"90\" r=\"8\" fill=\"#f97316\"/>\n            <polygon points=\"65,115 95,95 115,115\" fill=\"#22c55e\"/>\n            <polygon points=\"95,115 125,90 145,115\" fill=\"#15803d\"/>\n            <rect x=\"65\" y=\"115\" width=\"80\" height=\"20\" fill=\"#38bdf8\"/>\n            <!-- Nhãn text -->\n            <rect x=\"155\" y=\"70\" width=\"115\" height=\"30\" rx=\"15\" fill=\"#dbeafe\"/>\n            <text x=\"212\" y=\"90\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"900\" fill=\"#1e40af\">1. HỘI HỌA</text>\n            <text x=\"212\" y=\"118\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Vẽ màu & phác nét</text>\n            <text x=\"212\" y=\"135\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#3b82f6\">Màu sáp • Màu nước</text>\n          </g>\n\n          <!-- Khung 2: ĐỒ HỌA IN TRANH (Lá cây & Khắc in nổi) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"315\" y=\"45\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#10b981\" stroke-width=\"3\"/>\n            <!-- Giấy in tranh và bản in hoa lá -->\n            <rect x=\"335\" y=\"65\" width=\"85\" height=\"115\" rx=\"8\" fill=\"#f0fdf4\" stroke=\"#86efac\" stroke-width=\"2\"/>\n            <!-- Chiếc lá in gân lá tinh xảo -->\n            <path d=\"M 377 80 Q 405 105 385 140 Q 355 130 377 80 Z\" fill=\"#22c55e\" opacity=\"0.85\"/>\n            <line x1=\"377\" y1=\"80\" x2=\"385\" y2=\"140\" stroke=\"#15803d\" stroke-width=\"2\"/>\n            <line x1=\"380\" y1=\"95\" x2=\"395\" y2=\"105\" stroke=\"#15803d\" stroke-width=\"1.5\"/>\n            <line x1=\"380\" y1=\"110\" x2=\"368\" y2=\"120\" stroke=\"#15803d\" stroke-width=\"1.5\"/>\n            <!-- Con lăn mực in nghệ thuật -->\n            <rect x=\"340\" y=\"145\" width=\"35\" height=\"12\" rx=\"4\" fill=\"#047857\"/>\n            <line x1=\"357\" y1=\"157\" x2=\"357\" y2=\"175\" stroke=\"#78350f\" stroke-width=\"3\"/>\n            <!-- Nhãn text -->\n            <rect x=\"430\" y=\"70\" width=\"130\" height=\"30\" rx=\"15\" fill=\"#d1fae5\"/>\n            <text x=\"495\" y=\"90\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"900\" fill=\"#065f46\">2. ĐỒ HỌA</text>\n            <text x=\"495\" y=\"118\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Tranh in nổi sáng tạo</text>\n            <text x=\"495\" y=\"135\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#10b981\">Gân lá • Củ quả • Xốp</text>\n          </g>\n\n          <!-- Khung 3: ĐIÊU KHẮC (Tượng đất nặn 3D) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"25\" y=\"225\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#f59e0b\" stroke-width=\"3\"/>\n            <!-- Bục trưng bày tượng gỗ -->\n            <ellipse cx=\"105\" cy=\"345\" rx=\"45\" ry=\"12\" fill=\"#fed7aa\" stroke=\"#c2410c\" stroke-width=\"2\"/>\n            <!-- Tượng đất nặn chú voi 3D -->\n            <ellipse cx=\"105\" cy=\"305\" rx=\"30\" ry=\"24\" fill=\"#fb923c\"/>\n            <circle cx=\"85\" cy=\"285\" r=\"18\" fill=\"#f97316\"/>\n            <!-- Vòi voi vươn cao -->\n            <path d=\"M 75 290 Q 60 270 70 255\" fill=\"none\" stroke=\"#ea580c\" stroke-width=\"6\" stroke-linecap=\"round\"/>\n            <circle cx=\"82\" cy=\"280\" r=\"3\" fill=\"#fff\"/>\n            <circle cx=\"82\" cy=\"280\" r=\"1.5\" fill=\"#000\"/>\n            <!-- Chân voi 3D -->\n            <rect x=\"85\" y=\"320\" width=\"10\" height=\"22\" rx=\"4\" fill=\"#ea580c\"/>\n            <rect x=\"115\" y=\"320\" width=\"10\" height=\"22\" rx=\"4\" fill=\"#ea580c\"/>\n            <!-- Nhãn text -->\n            <rect x=\"155\" y=\"245\" width=\"115\" height=\"30\" rx=\"15\" fill=\"#fef3c7\"/>\n            <text x=\"212\" y=\"265\" text-anchor=\"middle\" font-size=\"13\" font-weight=\"900\" fill=\"#92400e\">3. ĐIÊU KHẮC</text>\n            <text x=\"212\" y=\"293\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Tạo hình 3 Chiều (3D)</text>\n            <text x=\"212\" y=\"310\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#d97706\">Đất nặn • Đất sét • Tạc</text>\n          </g>\n\n          <!-- Khung 4: MĨ THUẬT ỨNG DỤNG (Bưu thiếp & Trang trí đồ vật) -->\n          <g filter=\"url(#shadowG3)\">\n            <rect x=\"315\" y=\"225\" width=\"260\" height=\"155\" rx=\"18\" fill=\"#ffffff\" stroke=\"#ec4899\" stroke-width=\"3\"/>\n            <!-- Bưu thiếp trang trí handmade -->\n            <rect x=\"335\" y=\"245\" width=\"85\" height=\"115\" rx=\"8\" fill=\"#fff1f2\" stroke=\"#fda4af\" stroke-width=\"2\"/>\n            <!-- Trái tim hoa văn cắt dán -->\n            <path d=\"M 377 275 C 365 255, 345 270, 377 305 C 409 270, 389 255, 377 275 Z\" fill=\"#f43f5e\"/>\n            <!-- Họa tiết chấm bi trang trí -->\n            <circle cx=\"355\" cy=\"330\" r=\"4\" fill=\"#facc15\"/>\n            <circle cx=\"377\" cy=\"335\" r=\"4\" fill=\"#38bdf8\"/>\n            <circle cx=\"399\" cy=\"330\" r=\"4\" fill=\"#a855f7\"/>\n            <!-- Nhãn text -->\n            <rect x=\"430\" y=\"245\" width=\"130\" height=\"30\" rx=\"15\" fill=\"#fce7f3\"/>\n            <text x=\"495\" y=\"265\" text-anchor=\"middle\" font-size=\"12\" font-weight=\"900\" fill=\"#9d174d\">4. MĨ THUẬT ỨNG DỤNG</text>\n            <text x=\"495\" y=\"293\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"bold\" fill=\"#64748b\">Làm đẹp cho đời sống</text>\n            <text x=\"495\" y=\"310\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\" fill=\"#db2777\">Bưu thiếp • Khung tranh</text>\n          </g>\n\n          <!-- Tiêu đề chân tranh -->\n          <rect x=\"120\" y=\"390\" width=\"360\" height=\"24\" rx=\"12\" fill=\"#ffffff\" opacity=\"0.95\"/>\n          <text x=\"300\" y=\"406\" font-family=\"Nunito, sans-serif\" font-size=\"12\" font-weight=\"900\" text-anchor=\"middle\" fill=\"#1e3a8a\">\n            🎨 Bốn Phân Môn Mĩ Thuật GDPT 2018 Lớp 3 (Thầy Cọ Nhí Thị Phạm)\n          </text>\n        </svg>\n      ",
           "elements": {
-            "line": "Nét vẽ tự tin, đường nét mềm mại kết hợp hình khối hài hòa.",
-            "color": "Hòa sắc tươi sáng, tương phản ấn tượng giữa chủ thể chính và nền tranh.",
-            "composition": "Bố cục cân đối, trọng tâm nổi bật đúng nguyên lí thị giác mĩ thuật."
+            "line": "Đường nét phong phú kết hợp giữa nét cọ hội họa, đường gân in nổi đồ họa và nét khối điêu khắc.",
+            "color": "Hòa sắc 4 gam màu tương phản hài hòa: Lam (Hội họa), Lục (Đồ họa), Vàng cam (Điêu khắc) và Hồng đỏ (Ứng dụng).",
+            "composition": "Bố cục tứ phân (4 phần) rõ ràng, cân đối, giúp học sinh tiểu học dễ dàng nhận diện và ghi nhớ sâu sắc."
           }
         },
         "badge": "🎨 1. Khởi động",
         "interactiveAction": {
           "type": "quiz",
-          "label": "❓ Đố Vui Khởi Động Cùng Thầy",
-          "question": "Nặn tượng bằng đất sét hoặc đục đẽo đá gỗ thành hình con vật 3D thuộc về phân môn mĩ thuật nào?",
+          "label": "❓ Đố Vui Khởi Động: 4 Cánh Cửa Mĩ Thuật",
+          "question": "Nặn tượng bằng đất sét hoặc gọt đẽo đá gỗ thành hình khối con vật 3 chiều thuộc về phân môn mĩ thuật nào?",
           "options": [
-            "A. Nghệ thuật Điêu khắc tạo hình",
-            "B. Nghệ thuật Thư pháp chữ viết",
+            "A. Nghệ thuật Điêu khắc tạo hình (3D)",
+            "B. Nghệ thuật Thư pháp viết chữ",
             "C. Nghệ thuật Nhiếp ảnh bấm máy"
           ],
           "correctIndex": 0,
-          "explanation": "Chính xác luôn con ơi! Điêu khắc là nghệ thuật tạo hình trong không gian ba chiều bằng cách đắp nặn, gọt đẽo để tạo nên những pho tượng tuyệt mĩ!"
+          "explanation": "Chính xác luôn con ơi! Điêu khắc là nghệ thuật tạo hình trong không gian ba chiều (3D) bằng cách đắp nặn, gọt đẽo để tạo nên những pho tượng tuyệt mĩ!"
         }
       },
       {
         "slideNumber": 2,
         "phase": "2. Khám phá",
         "phaseIcon": "🔍",
-        "title": "2. QUAN SÁT & KHÁM PHÁ: EM YÊU MĨ THUẬT",
+        "title": "2. QUAN SÁT & KHÁM PHÁ: ĐẶC TRƯNG TỪNG PHÂN MÔN",
         "subtitle": "Tiến trình 2: Quan sát nhận biết (10 phút) • Phân tích đường nét, màu sắc và hình khối",
-        "teacherLecture": "Các con hãy quan sát thật kĩ vẻ đẹp của Em Yêu Mĩ Thuật. Mỗi đường nét, mỗi mảng màu đều mang lại một cảm xúc riêng biệt giúp bức tranh của chúng mình trở nên sống động!",
+        "teacherLecture": "Các con hãy quan sát thật kĩ: Hội họa dùng màu vẽ trên mặt phẳng; Đồ họa dùng bản khắc in nổi; Điêu khắc có khối tròn ngắm được mọi phía; còn Mĩ thuật ứng dụng làm đẹp cho chiếc cặp, bưu thiếp và đồ chơi của chúng mình!",
         "bullets": [
           "Quan sát các tác phẩm mẫu và hình ảnh thực tế về Em Yêu Mĩ Thuật",
           "Phân tích các yếu tố tạo hình nổi bật: đường nét, màu sắc, hình khối và không gian",
@@ -7977,9 +7977,16 @@ export const KET_NOI_TRI_THUC_DATA = [
         },
         "badge": "🔍 2. Khám phá tri thức",
         "interactiveAction": {
-          "type": "explore",
-          "label": "🔎 Khám Phá Nét Đẹp Tác Phẩm",
-          "detail": "Tập trung phân tích kỹ thuật tạo hình và hòa sắc độc đáo của chủ đề Em Yêu Mĩ Thuật."
+          "type": "quiz",
+          "label": "🔎 Đố Vui Khám Phá: Phân Biệt Thể Loại Mĩ Thuật",
+          "question": "Bức tranh in hoa lá từ gân lá cây, củ khoai tây hoặc con dấu xốp thủ công thuộc về thể loại mĩ thuật nào?",
+          "options": [
+            "A. Nghệ thuật Đồ họa (Tranh in nổi)",
+            "B. Nghệ thuật Hội họa (Tranh vẽ cọ thông thường)",
+            "C. Nghệ thuật Kiến trúc xây dựng"
+          ],
+          "correctIndex": 0,
+          "explanation": "Rất chuẩn xác! Đồ họa (Printmaking) là nghệ thuật tạo hình bằng cách in ấn từ các bản khắc hoặc chất liệu tự nhiên lên mặt giấy!"
         }
       },
       {
@@ -7988,7 +7995,7 @@ export const KET_NOI_TRI_THUC_DATA = [
         "phaseIcon": "💡",
         "title": "3. BÍ QUYẾT TẠO HÌNH & THỊ PHẠM CỦA THẦY",
         "subtitle": "Tiến trình 3: Luyện tập sáng tạo (15 phút) • Hướng dẫn các bước thực hành từng bước",
-        "teacherLecture": "Bí quyết tạo hình của Thầy: Hãy tự tin đưa nét vẽ, vẽ hình to ở chính giữa trang giấy và phối hợp màu sắc hài hòa để làm nổi bật chủ đề Em Yêu Mĩ Thuật nhé!",
+        "teacherLecture": "Bí quyết tạo hình của Thầy: Dù con chọn vẽ tranh, in hoa lá hay nặn tượng, hãy luôn nhớ 3 bước thần kì: Bước 1: Phác mảng chính to rõ ở trọng tâm; Bước 2: Dựng nét chi tiết mềm mại; Bước 3: Lên màu tươi sáng có đậm nhạt để tác phẩm nổi bật!",
         "bullets": [
           "Bước 1: Phác khung hình và bố cục chính của Em Yêu Mĩ Thuật vào giữa trang giấy.",
           "Bước 2: Vẽ nét chi tiết đặc trưng của hình mẫu, tạo sự uyển chuyển cho đối tượng.",
@@ -8018,17 +8025,25 @@ export const KET_NOI_TRI_THUC_DATA = [
         },
         "badge": "💡 3. Thực hành sáng tạo",
         "interactiveAction": {
-          "type": "draw",
-          "label": "🎨 Mở Bảng Vẽ Làm Theo Lời Thầy"
+          "type": "quiz",
+          "label": "💡 Đố Vui Bí Quyết Của Thầy: Bước Đầu Tiên",
+          "question": "Khi bắt đầu thực hành sáng tạo một tác phẩm mĩ thuật, bước quan trọng đầu tiên Thầy khuyên con nên làm là gì?",
+          "options": [
+            "A. Tô màu kín đặc hết trang giấy ngay",
+            "B. Phác hình chính to rõ ở vị trí trọng tâm của tranh",
+            "C. Kẻ khung viền thật đen và đậm sát mép giấy"
+          ],
+          "correctIndex": 1,
+          "explanation": "Tuyệt vời con ơi! Bước đầu tiên luôn là phác hình chính to rõ ở giữa trang giấy để tạo trọng tâm nổi bật cho bức tranh!"
         }
       },
       {
         "slideNumber": 4,
         "phase": "4. Trưng bày",
         "phaseIcon": "🏅",
-        "title": "4. GÓC TRIỂN LÃM & ĐÁNH GIÁ THEO RUBRIC",
+        "title": "4. GÓC TRIỂN LÃM & ĐÁNH GIÁ THEO 4 TIÊU CHÍ RUBRIC",
         "subtitle": "Tiến trình 4: Trưng bày chia sẻ (5 phút) • Đánh giá theo 4 Tiêu chí Rubric GDPT 2018",
-        "teacherLecture": "Góc triển lãm hôm nay thật rực rỡ! Thầy mời các con mang bài lên trưng bày và cùng chia sẻ xem con thích nhất chi tiết nào trong tác phẩm của mình và bạn nhé!",
+        "teacherLecture": "Góc triển lãm hôm nay quy tụ đầy đủ cả 4 thể loại tuyệt đẹp! Thầy chấm tranh theo đúng 4 tiêu chí chuẩn GDPT 2018: (1) Sáng tạo độc đáo, (2) Bố cục cân đối, (3) Kỹ thuật nét khối điêu luyện, (4) Màu sắc và cảm xúc tươi vui. Con hãy tự tin chia sẻ tác phẩm của mình nhé!",
         "bullets": [
           "Tiêu chí 1: Thể hiện đúng và sáng tạo chủ đề Em Yêu Mĩ Thuật",
           "Tiêu chí 2: Bố cục mảng chính - mảng phụ cân đối, hài hòa trên trang giấy",
@@ -8059,8 +8074,16 @@ export const KET_NOI_TRI_THUC_DATA = [
         },
         "badge": "🏅 4. Trưng bày & Đánh giá",
         "interactiveAction": {
-          "type": "critique",
-          "label": "📸 Nhờ Mắt Thần Chấm Tranh Của Con"
+          "type": "quiz",
+          "label": "🏅 Đố Vui Đánh Giá: 4 Tiêu Chí Rubric Của Thầy",
+          "question": "Theo Thang Rubric 4 Tiêu chí của Thầy, tiêu chí nào giúp đánh giá độ cân đối, mảng chính mảng phụ và chiều sâu không gian?",
+          "options": [
+            "A. Tiêu chí 1: Ý tưởng & Tính sáng tạo",
+            "B. Tiêu chí 2: Bố cục & Không gian",
+            "C. Tiêu chí 3: Kỹ thuật nét vẽ & Màu sắc"
+          ],
+          "correctIndex": 1,
+          "explanation": "Chuẩn xác 100%! Tiêu chí 2 (Bố cục & Không gian) giúp đánh giá độ cân đối, mảng chính mảng phụ và chiều sâu không gian của bức tranh!"
         }
       },
       {
@@ -8069,7 +8092,7 @@ export const KET_NOI_TRI_THUC_DATA = [
         "phaseIcon": "🚀",
         "title": "5. VẬN DỤNG & SÁNG TẠO VÀO ĐỜI SỐNG",
         "subtitle": "Tiến trình 5: Vận dụng phát triển (5 phút) • Đưa cái đẹp mĩ thuật vào cuộc sống quanh em",
-        "teacherLecture": "Bài học hôm nay thật tuyệt vời! Thầy mong các con hãy mang bức tranh của mình về trang trí góc học tập thêm rực rỡ và luôn giữ gìn đồ dùng học vẽ gọn gàng nhé!",
+        "teacherLecture": "Mĩ thuật không chỉ nằm trên trang giấy mà luôn hiện diện quanh ta! Con hãy mang bức tranh hoặc pho tượng của mình về trang trí bàn học, làm thiệp chúc mừng tặng người thân yêu và nhớ luôn giữ gìn hộp màu ngăn nắp nhé!",
         "bullets": [
           "Mang bức tranh về trưng bày tại góc học tập của con",
           "Làm món quà ý nghĩa gửi tặng bố mẹ, thầy cô và bạn bè",
@@ -8119,9 +8142,55 @@ export const KET_NOI_TRI_THUC_DATA = [
         ],
         "badge": "🚀 5. Vận dụng đời sống",
         "interactiveAction": {
-          "type": "apply",
-          "label": "🌟 Thử Thách Sáng Tạo Tại Nhà"
+          "type": "quiz",
+          "label": "🌟 Thử Thách Vận Dụng: Lan Tỏa Cái Đẹp",
+          "question": "Sau khi hoàn thành tác phẩm mĩ thuật hôm nay, con có thể vận dụng vào đời sống như thế nào để lan tỏa cái đẹp?",
+          "options": [
+            "A. Đóng khung trang trí góc học tập hoặc làm quà tặng ý nghĩa cho người thân",
+            "B. Vo tròn tờ giấy vứt vào góc nhà",
+            "C. Giấu kín trong cặp không cho ai xem"
+          ],
+          "correctIndex": 0,
+          "explanation": "Rất xuất sắc con yêu! Tác phẩm mĩ thuật do chính tay con làm ra là món quà vô giá để trang trí góc học tập hoặc tặng cha mẹ, thầy cô và bạn bè!"
         }
+      }
+    ],
+    "sampleArtworks": [
+      {
+        "id": "g3_cd1_art1",
+        "title": "Tác Phẩm 1: Ngày Hội Mĩ Thuật Trường Em (Hội Họa)",
+        "category": "Hội Họa (Vẽ Tranh)",
+        "icon": "🖌️",
+        "imageUrl": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+        "description": "Bức tranh vẽ bằng màu sáp dầu tươi sáng, khắc họa các bạn nhỏ say mê vẽ tranh dưới bóng cây trường học.",
+        "tips": "Dùng các mảng màu tươi sáng, nét bút dứt khoát và bố cục có hình chính hình phụ rõ ràng."
+      },
+      {
+        "id": "g3_cd1_art2",
+        "title": "Tác Phẩm 2: Khu Vườn Hoa Lá In Nổi (Đồ Họa)",
+        "category": "Đồ Họa (Tranh In)",
+        "icon": "🍂",
+        "imageUrl": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80",
+        "description": "Bức tranh in nổi độc đáo sử dụng gân lá bàng và lát cắt củ sen tạo thành khu vườn hoa bướm sống động.",
+        "tips": "Quét màu vừa đủ lên gân lá, đặt nhẹ lên giấy rồi dùng tay miết đều để đường vân hiện rõ sắc nét."
+      },
+      {
+        "id": "g3_cd1_art3",
+        "title": "Tác Phẩm 3: Chú Voi Con Tây Nguyên 3D (Điêu Khắc)",
+        "category": "Điêu Khắc (Nặn Tượng)",
+        "icon": "🗿",
+        "imageUrl": "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80",
+        "description": "Pho tượng chú voi nhỏ đắp nặn từ đất sét màu 3 chiều, có tai to, vòi uốn lượn và 4 chân đứng vững chãi.",
+        "tips": "Vo các khối tròn to làm thân, gắn kết chắc các bộ phận bằng cách vuốt nhẹ đất sét và tạo hoa văn ngộ nghĩnh."
+      },
+      {
+        "id": "g3_cd1_art4",
+        "title": "Tác Phẩm 4: Bưu Thiếp Trái Tim Tặng Thầy Cô (Mĩ Thuật Ứng Dụng)",
+        "category": "Mĩ Thuật Ứng Dụng",
+        "icon": "🎁",
+        "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&q=80",
+        "description": "Sản phẩm bưu thiếp trang trí bàn học hoặc tặng người thân, phối hợp cắt dán giấy màu và ruy băng rực rỡ.",
+        "tips": "Gấp mép giấy thẳng thớm, kết hợp chữ viết nắn nót và họa tiết viền hoa xinh xắn."
       }
     ]
   },
@@ -12962,8 +13031,16 @@ export const KET_NOI_TRI_THUC_DATA = [
         },
         "badge": "💡 3. Thực hành sáng tạo",
         "interactiveAction": {
-          "type": "draw",
-          "label": "🎨 Mở Bảng Vẽ Làm Theo Lời Thầy"
+          "type": "quiz",
+          "label": "🏞️ Đố Vui Bí Quyết Vẽ Phong Cảnh Lớp 4",
+          "question": "Trong quy luật xa - gần (viễn cận) của tranh phong cảnh, các cảnh vật ở gần (tiền cảnh) cần được vẽ như thế nào so với cảnh ở xa (hậu cảnh)?",
+          "options": [
+            "A. Gần thì vẽ To hơn, Rõ chi tiết hơn và Màu sắc đậm đà hơn",
+            "B. Gần thì vẽ Nhỏ xíu và Mờ nhạt hơn",
+            "C. Gần và Xa đều vẽ kích thước và màu sắc giống hệt nhau"
+          ],
+          "correctIndex": 0,
+          "explanation": "Xuất sắc luôn con ơi! Quy luật vàng của tranh phong cảnh Lớp 4 là: 'Gần thì To và Rõ, Xa thì Nhỏ và Mờ' để tạo chiều sâu không gian chân thực!"
         }
       },
       {
@@ -13067,7 +13144,24 @@ export const KET_NOI_TRI_THUC_DATA = [
           "label": "🌟 Thử Thách Sáng Tạo Tại Nhà"
         }
       }
-    ]
+    ],
+    "practiceTask": {
+      "title": "Bài Tập Thực Hành Vẽ Tranh Phong Cảnh Quê Hương Em (Lớp 4)",
+      "theme": "Phong Cảnh Danh Lam Thắng Cảnh Việt Nam (Vịnh Hạ Long, Ruộng Bậc Thang, Làng Quê Thanh Bình)",
+      "guidelines": [
+        "Bước 1 (Đường chân trời): Kẻ một đường ngang ở khoảng 1/3 trang giấy để phân chia bầu trời và mặt đất/mặt nước.",
+        "Bước 2 (Tiền cảnh - Cảnh gần): Vẽ các hình ảnh ở gần to rõ, chi tiết sắc nét (ngôi nhà mái ngói đỏ, hàng dừa, con thuyền nan, cây cổ thụ).",
+        "Bước 3 (Hậu cảnh - Cảnh xa): Vẽ các ngọn núi trập trùng mờ ảo, đàn chim én bay nhỏ xíu phía xa theo đúng luật viễn cận.",
+        "Bước 4 (Phối màu xa gần): Cảnh gần tô màu tươi sáng, đậm đà; cảnh xa tô màu nhạt pha chút xanh lam mát dịu tạo chiều sâu 3D.",
+        "Bước 5 (Nhấn sáng tối): Điểm xuyết ánh nắng mặt trời vàng ấm, vệt sóng nước lấp lánh và bóng râm dưới gốc cây."
+      ],
+      "rubric4Criteria": {
+        "criterion1": "Ý tưởng & Chủ đề: Thể hiện được nét đặc trưng của cảnh đẹp quê hương Việt Nam.",
+        "criterion2": "Bố cục & Không gian: Áp dụng nhuần nhuyễn luật xa gần (gần to rõ, xa nhỏ mờ) và 3 lớp không gian.",
+        "criterion3": "Kĩ thuật nét & Màu sắc: Đường nét tự tin, hòa sắc tương phản tươi sáng giữa tiền cảnh và hậu cảnh.",
+        "criterion4": "Cảm xúc & Hoàn thiện: Bức tranh trọn vẹn, giàu tình yêu thiên nhiên đất nước và niềm tự hào dân tộc."
+      }
+    }
   },
   {
     "id": "kntt_g4_cd4",

@@ -69,7 +69,7 @@ const VIETNAMESE_KID_IDEAS = [
   { label: '🌸 Đầm Sen Làng Quê', idea: 'bông hoa sen hồng nở rộ thơm ngát bên đầm nước trong lành' }
 ];
 
-export default function InspirationView({ onSendToCanvas }) {
+export default function InspirationView({ onSendToCanvas, isTvMode = false }) {
   const [customPrompt, setCustomPrompt] = useState('');
   const [selectedStyle, setSelectedStyle] = useState(ART_STYLES[0]);
   const [generatedImageUrl, setGeneratedImageUrl] = useState(
@@ -160,15 +160,16 @@ export default function InspirationView({ onSendToCanvas }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-3 sm:p-6 flex flex-col gap-8">
+    <div className={`max-w-6xl mx-auto p-3 sm:p-6 flex flex-col gap-8 ${isTvMode ? 'text-lg max-w-7xl' : ''}`}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between flex-wrap gap-4">
+      <div className={`bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between flex-wrap gap-4 ${isTvMode ? 'p-8 border-4 border-amber-300' : ''}`}>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-xl shrink-0">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-xl shrink-0 bg-white">
             <img
               src="./teacher.jpg"
               alt="Thầy Cọ Nhí"
               className="w-full h-full object-cover animate-bounce-gentle"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/teacher.jpg'; }}
             />
           </div>
           <div>
@@ -291,6 +292,10 @@ export default function InspirationView({ onSendToCanvas }) {
                   src={generatedImageUrl}
                   alt="Tranh mẫu nghệ thuật thực tế"
                   className="w-full h-auto max-h-[480px] object-contain"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80';
+                  }}
                 />
                 <div className="absolute top-3 left-3 px-3 py-1 bg-black/70 backdrop-blur rounded-xl text-white font-extrabold text-xs shadow flex items-center gap-1.5">
                   <span>{selectedStyle.icon}</span>
@@ -368,6 +373,10 @@ export default function InspirationView({ onSendToCanvas }) {
                   src={art.imageUrl}
                   alt={art.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&q=80';
+                  }}
                 />
                 <span className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur text-white text-[10px] font-bold rounded-lg">
                   CC0 Public Domain
