@@ -9,10 +9,12 @@ import https from 'https';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+import { detectInstalledOffice, openOfficeDocument } from './officeHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DIST_DIR = path.join(__dirname, 'dist');
+const STUDIO_DIST = path.resolve(__dirname, '../../app cọ nhí đã bán/co-nhi-studio/dist');
+const DIST_DIR = fs.existsSync(STUDIO_DIST) ? STUDIO_DIST : path.join(__dirname, 'dist');
 const PORT = process.env.PORT || 3000;
 
 const MIME_TYPES = {
@@ -40,13 +42,19 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 2. API: Mở Trực Tiếp Microsoft PowerPoint (POWERPNT.EXE) trên máy tính
-  if (pathname === '/api/open-powerpoint') {
-    handleOpenPowerpoint(req, res);
+  // 2. API: Trạng thái các bộ phần mềm Office trên máy tính
+  if (pathname === '/api/office-status') {
+    handleOfficeStatus(req, res);
     return;
   }
 
-  // 3. Static Assets from dist/
+  // 3. API: Mở Trực Tiếp Tệp Office (.pptx, .docx, .xlsx) trên máy tính
+  if (pathname === '/api/open-office' || pathname === '/api/open-powerpoint') {
+    handleOpenOffice(req, res, pathname);
+    return;
+  }
+
+  // 4. Static Assets from dist/
   let filePath = path.join(DIST_DIR, pathname === '/' ? 'index.html' : pathname);
 
   if (!fs.existsSync(filePath)) {
@@ -71,40 +79,51 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-function handleOpenPowerpoint(req, res) {
+function handleOfficeStatus(req, res) {
   try {
-    const pptPath = 'C:\\Program Files (x86)\\Microsoft Office\\root\\Office16\\POWERPNT.EXE';
-    const fallbackPath = 'C:\\Program Files\\Microsoft Office\\root\\Office16\\POWERPNT.EXE';
-    const exe = fs.existsSync(pptPath) ? pptPath : (fs.existsSync(fallbackPath) ? fallbackPath : 'powerpnt.exe');
+    const info = detectInstalledOffice();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(info));
+  } catch (err) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: err.message }));
+  }
+}
 
+function handleOpenOffice(req, res, pathname) {
+  try {
     const chunks = [];
     req.on('data', chunk => chunks.push(chunk));
-    req.on('end', () => {
+    req.on('end', async () => {
       try {
-        let targetFile = '';
-        if (chunks.length > 0) {
-          const buffer = Buffer.concat(chunks);
-          const tempPptx = path.join(os.tmpdir(), 'BaiGiang_MiThuat_GDPT2018.pptx');
-          fs.writeFileSync(tempPptx, buffer);
-          targetFile = tempPptx;
+        let buffer = null;
+        let type = pathname === '/api/open-powerpoint' ? 'pptx' : 'pptx';
+        let fileName = 'BaiGiang_MiThuat_GDPT2018';
+
+        const contentType = req.headers['content-type'] || '';
+        if (contentType.includes('application/json')) {
+          const bodyStr = Buffer.concat(chunks).toString('utf8');
+          const body = JSON.parse(bodyStr || '{}');
+          type = body.type || type;
+          fileName = body.fileName || fileName;
+          if (body.base64) {
+            buffer = Buffer.from(body.base64, 'base64');
+          }
+        } else if (chunks.length > 0) {
+          buffer = Buffer.concat(chunks);
         }
 
-        const cmd = targetFile ? `start "" "${exe}" "${targetFile}"` : `start "" "${exe}"`;
-        spawn('cmd.exe', ['/c', cmd], { windowsHide: true, detached: true });
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ 
-          success: true, 
-          message: 'Đã kích hoạt Microsoft PowerPoint (POWERPNT.EXE) thành công trên máy tính!' 
-        }));
+        const result = await openOfficeDocument({ type, fileName, buffer });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(result));
       } catch (err) {
-        console.error('Lỗi khi mở PowerPoint:', err);
+        console.error('Lỗi khi mở Office:', err);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
       }
     });
   } catch (e) {
-    console.error('Lỗi middleware open-powerpoint:', e);
+    console.error('Lỗi middleware open-office:', e);
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ success: false, error: e.message }));
   }
