@@ -16,7 +16,7 @@
 
 ## 2. Các Tính Năng Trọng Tâm
 1. **AI Thematic Art Teacher (Nhân vật "Thầy Cọ Nhí" & Bong Bóng Giảng Bài):**
-   * Sử dụng ảnh chân dung thực tế của Thầy giáo tại `app/public/teacher.jpg`.
+   * Sử dụng biểu tượng vector nghệ thuật chuẩn thương hiệu Cọ Nhí (TeacherAvatar / 🎨), tuyệt đối xóa sạch và không dùng ảnh chân dung AI người thực.
    * Giao diện bong bóng giảng bài tương tác (Floating Teacher Bubble) góc dưới bên phải màn hình, tự động dặn dò và phát âm tiếng Việt tương ứng với từng màn hình.
    * Giảng dạy theo hệ thống chủ đề chuẩn SGK GDPT 2018 phân cấp từ Lớp 1 đến Lớp 5 (Kết nối tri thức, Chân trời sáng tạo, Cánh diều).
    * Cung cấp 3 thành phần cốt lõi trong mỗi tiết học: (1) Khơi gợi cảm hứng & Đố vui, (2) Bí quyết mĩ thuật cô đọng, (3) Thử thách sáng tạo cho bé.
@@ -75,7 +75,7 @@
 > [!CAUTION]
 > **Sau khi hoàn thành bất kỳ tính năng hoặc sửa lỗi nào, tác nhân BẮT BUỘC thực hiện kiểm tra 4 tiêu chí trước khi báo cáo kết quả:**
 > 1. **Tính Thống Nhất (Consistency):**
->    - Nhân vật: 100% "Thầy Giáo Mĩ Thuật" (Thầy Cọ Nhí), ảnh đại diện thực tế `/teacher.jpg` ở tất cả các tab (Header, Lớp học Kết nối tri thức, Bảng vẽ, Mắt thần chấm tranh, Vẽ từng bước, Xưởng ý tưởng, Bong bóng giảng bài).
+>    - Nhân vật: 100% "Thầy Giáo Mĩ Thuật" (Thầy Cọ Nhí), biểu tượng đại diện nghệ thuật TeacherAvatar / 🎨 ở tất cả các tab (Header, Lớp học Kết nối tri thức, Bảng vẽ, Mắt thần chấm tranh, Vẽ từng bước, Xưởng ý tưởng, Bong bóng giảng bài), xóa sạch và không dùng ảnh AI người thực.
 >    - Giọng nói: 100% Giọng nam tiếng Việt tự nhiên (`vi-VN-NamMinhNeural`), tuyệt đối không để giọng nữ hay giọng tiếng Anh phát ra.
 >    - Giáo trình: Đồng nhất phân loại Lớp 1 - 5 theo bộ sách "Kết nối tri thức với cuộc sống", có cả Giáo án Word (CV 2345) và Slide PowerPoint.
 > 2. **Không Trùng Lặp (Zero Redundancy):**
