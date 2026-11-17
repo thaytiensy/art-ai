@@ -129,145 +129,175 @@ function handleOpenOffice(req, res, pathname) {
   }
 }
 
+let ttsQueue = Promise.resolve();
+
+async function synthesizeEdgeTtsWithRetry(cleanText, voiceName) {
+  const task = ttsQueue.then(async () => {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      let tts = null;
+      try {
+        tts = new MsEdgeTTS();
+        await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+        const { audioStream } = tts.toStream(cleanText);
+        const chunks = [];
+
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => {
+            if (chunks.length > 0) resolve();
+            else reject(new Error('Timeout Edge TTS'));
+          }, 8000);
+
+          audioStream.on('data', chunk => chunks.push(chunk));
+          audioStream.on('end', () => {
+            clearTimeout(timer);
+            resolve();
+          });
+          audioStream.on('error', error => {
+            clearTimeout(timer);
+            if (chunks.length > 0) resolve();
+            else reject(error);
+          });
+        });
+
+        const audioBuffer = Buffer.concat(chunks);
+        if (audioBuffer.length > 0) return audioBuffer;
+        throw new Error('Edge TTS trả về âm thanh rỗng');
+      } catch (error) {
+        if (attempt === 3) throw error;
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } finally {
+        if (tts) {
+          try { tts.close(); } catch (_) {}
+          tts = null;
+        }
+      }
+    }
+    throw new Error('Không thể tổng hợp âm thanh qua Edge TTS');
+  });
+
+  ttsQueue = task.catch(() => undefined);
+  return task;
+}
+
+function fetchGoogleTtsChunk(text) {
+  return new Promise((resolve, reject) => {
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=vi&client=tw-ob`;
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }, (res) => {
+      if (res.statusCode !== 200) {
+        return reject(new Error(`Google TTS status: ${res.statusCode}`));
+      }
+      const chunks = [];
+      res.on('data', (d) => chunks.push(d));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+    }).on('error', reject);
+  });
+}
+
+async function synthesizeGoogleTts(cleanText) {
+  const words = cleanText.split(/\s+/);
+  const segments = [];
+  let current = '';
+
+  for (const word of words) {
+    if ((current + ' ' + word).trim().length <= 150) {
+      current = (current + ' ' + word).trim();
+    } else {
+      if (current) segments.push(current);
+      current = word;
+    }
+  }
+  if (current) segments.push(current);
+
+  const buffers = [];
+  for (const seg of segments) {
+    const buf = await fetchGoogleTtsChunk(seg);
+    if (buf && buf.length > 0) buffers.push(buf);
+  }
+  return Buffer.concat(buffers);
+}
+
 async function handleTts(req, res, url) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
   const text = url.searchParams.get('text');
-  if (!text) {
-    res.writeHead(400);
-    res.end('Missing text');
+  if (!text || !text.trim()) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Missing text' }));
     return;
   }
 
   const cleanText = text
-    .replace(/[#*_`~-]/g, '')
+    .replace(/\s*&\s*/g, ' và ')
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, ' ')
+    .replace(/[#*_`~<>{}[\]\\-]/g, ' ')
     .replace(/\n+/g, '. ')
     .replace(/https?:\/\/\S+/g, '')
-    .slice(0, 600)
+    .slice(0, 1000)
     .trim();
 
   const voiceParam = url.searchParams.get('voice') || 'male';
-  const voice = (voiceParam === 'female' || voiceParam === 'vi-VN-HoaiMyNeural' || String(voiceParam).toLowerCase().includes('nu') || String(voiceParam).toLowerCase().includes('hoaimy'))
-    ? 'vi-VN-HoaiMyNeural'
-    : 'vi-VN-NamMinhNeural';
-  const cacheKey = `${voice}_${cleanText}`;
+  const isFemale = voiceParam === 'female' || voiceParam === 'vi-VN-HoaiMyNeural' || String(voiceParam).toLowerCase().includes('nu');
+  const voiceName = isFemale ? 'vi-VN-HoaiMyNeural' : 'vi-VN-NamMinhNeural';
+  const cacheKey = `${voiceName}_${cleanText}`;
 
   if (ttsCache.has(cacheKey)) {
     const buf = ttsCache.get(cacheKey);
     res.writeHead(200, {
       'Content-Type': 'audio/mpeg',
       'Content-Length': buf.length,
+      'X-TTS-Voice': voiceName,
       'Cache-Control': 'public, max-age=86400'
     });
     res.end(buf);
     return;
   }
 
-  // Ưu tiên 1: Pure Node.js WebSocket Edge-TTS
+  // Ưu tiên 1: Edge TTS Neural
   try {
-    const tts = new MsEdgeTTS();
-    await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    const { audioStream } = tts.toStream(cleanText);
-
-    res.writeHead(200, {
-      'Content-Type': 'audio/mpeg',
-      'Transfer-Encoding': 'chunked',
-      'Accept-Ranges': 'bytes',
-      'Cache-Control': 'public, max-age=86400'
-    });
-
-    const chunks = [];
-    audioStream.on('data', (c) => {
-      chunks.push(c);
-      if (!res.writableEnded) res.write(c);
-    });
-
-    audioStream.on('end', () => {
-      if (chunks.length > 0) {
-        ttsCache.set(cacheKey, Buffer.concat(chunks));
-      }
-      if (!res.writableEnded) res.end();
-    });
-
-    audioStream.on('error', (err) => {
-      console.error('MsEdgeTTS server stream error:', err);
-      if (!res.writableEnded) res.end();
-    });
-
-    req.on('close', () => {
-      try { tts.close(); } catch (e) {}
-    });
-    return;
-  } catch (wsErr) {
-    console.warn('MsEdgeTTS failed, falling back to standalone edge-tts.exe:', wsErr.message);
+    const audioBuf = await synthesizeEdgeTtsWithRetry(cleanText, voiceName);
+    if (audioBuf && audioBuf.length > 0) {
+      ttsCache.set(cacheKey, audioBuf);
+      res.writeHead(200, {
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuf.length,
+        'X-TTS-Voice': voiceName,
+        'Cache-Control': 'public, max-age=86400'
+      });
+      res.end(audioBuf);
+      return;
+    }
+  } catch (edgeErr) {
+    console.warn(`[Server TTS] MsEdgeTTS (${voiceName}) failed:`, edgeErr.message);
   }
 
-  // Ưu tiên 2: Standalone edge-tts.exe
-  const tempFile = path.join(os.tmpdir(), `tts_${Date.now()}_${Math.random().toString(36).slice(2)}.txt`);
-  fs.writeFileSync(tempFile, cleanText, 'utf8');
-
-  let processClosed = false;
-  const chunks = [];
-
-  const cleanup = () => {
-    try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (e) {}
-  };
-
-  const localEdgeExe = path.join(os.homedir(), '.local', 'bin', 'edge-tts.exe');
-  const useDirectExe = fs.existsSync(localEdgeExe);
-  const exeCmd = useDirectExe ? localEdgeExe : 'uvx';
-  const exeArgs = useDirectExe
-    ? ['--voice', voice, '--file', tempFile, '--write-media', '-']
-    : ['edge-tts', '--voice', voice, '--file', tempFile, '--write-media', '-'];
-
-  res.writeHead(200, {
-    'Content-Type': 'audio/mpeg',
-    'Transfer-Encoding': 'chunked',
-    'Accept-Ranges': 'bytes',
-    'Cache-Control': 'public, max-age=86400'
-  });
-
-  const p = spawn(exeCmd, exeArgs, { windowsHide: true });
-
-  p.stdout.on('data', c => {
-    chunks.push(c);
-    if (!res.writableEnded) {
-      res.write(c);
+  // Ưu tiên 2: Google Vietnamese TTS Fallback (100% tiếng Việt chuẩn, không bao giờ mất tiếng)
+  try {
+    const googleBuf = await synthesizeGoogleTts(cleanText);
+    if (googleBuf && googleBuf.length > 0) {
+      ttsCache.set(cacheKey, googleBuf);
+      res.writeHead(200, {
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': googleBuf.length,
+        'X-TTS-Voice': isFemale ? 'Google-Vietnamese-Female' : 'Google-Vietnamese',
+        'Cache-Control': 'public, max-age=86400'
+      });
+      res.end(googleBuf);
+      return;
     }
-  });
+  } catch (gErr) {
+    console.warn('[Server TTS] Google TTS fallback failed:', gErr.message);
+  }
 
-  p.on('close', code => {
-    processClosed = true;
-    cleanup();
-    if (code === 0 && chunks.length > 0) {
-      const audioBuffer = Buffer.concat(chunks);
-      ttsCache.set(cacheKey, audioBuffer);
-      if (!res.writableEnded) {
-        res.end();
-      }
-    } else {
-      if (!res.writableEnded) {
-        res.end();
-      }
-    }
-  });
-
-  p.on('error', (err) => {
-    cleanup();
-    if (!processClosed && !res.writableEnded) {
-      processClosed = true;
-      res.end();
-    }
-  });
-
-  setTimeout(() => {
-    if (!processClosed) {
-      processClosed = true;
-      cleanup();
-      try { p.kill(); } catch (e) {}
-      if (!res.writableEnded) {
-        res.end();
-      }
-    }
-  }, 12000);
+  res.writeHead(500, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Không thể tổng hợp giọng đọc' }));
 }
 
 server.listen(PORT, () => {

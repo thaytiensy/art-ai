@@ -128,3 +128,26 @@ flowchart TD
     - `render_sales_video`: Render video thành phẩm định dạng 9:16 dọc hoặc 16:9 ngang có phụ đề và hiệu ứng.
   - **Google Workspace (`gdocs`, `gslides`):**
     - Tạo tài liệu hướng dẫn kỹ thuật trên Docs và Slide thuyết trình trên Slides sẵn sàng chia sẻ.
+
+---
+
+## ⚡ HỆ THỐNG MCP TIẾT KIỆM TOKEN & BỘ LÕI SIÊU VIP PRO (TOKEN OPTIMIZATION)
+
+### 1. Cơ Chế Tiết Kiệm 50% - 90% Token Bằng MCP Serena (`serena-agent`)
+* Khi đọc, sửa hoặc tái cấu trúc mã nguồn, tránh đọc toàn bộ tệp hoặc ghi đè cả file lớn:
+  - `find_symbol`: Định vị chính xác vị trí hàm/class trong cây AST mà không cần quét từng dòng tệp.
+  - `get_symbols_overview`: Xem tổng quan cấu trúc file chỉ tốn vài chục token.
+  - `replace_symbol_body`: Chỉ thay thế phần thân của hàm/symbol cần sửa, giữ nguyên toàn bộ phần còn lại.
+  - `find_referencing_symbols`: Tìm tất cả vị trí gọi hàm thông qua Language Server thay vì dùng lệnh grep toàn bộ thư mục.
+
+### 2. Bộ Lọc Tư Duy & Tri Thức Bền Vững
+* **`sequential-thinking` (`@modelcontextprotocol/server-sequential-thinking`):** Suy nghĩ có cấu trúc từng bước trước khi viết mã, loại bỏ hoàn toàn các lượt phản hồi thừa hoặc sửa sai do hiểu nhầm.
+* **`context7-live-docs` (`@upstash/context7-mcp`):** Tra cứu trực tiếp tài liệu chính thống (React 19, Tailwind, Motion) theo từng section chuyên biệt (`query-docs`), không load tài liệu dư thừa.
+* **`persistent-memory` (`@modelcontextprotocol/server-memory`):** Lưu đồ thị tri thức dự án để AI không phải scan lại workspace mỗi lượt làm việc.
+
+### 3. Tận Dụng Bộ Thư Viện Lõi (`core-toolkit`)
+* Tận dụng bộ 3 thư viện chuẩn bị sẵn tại `QUY-TRINH-TAO-APP-SIEU-VIP-PRO/core-toolkit/`:
+  - `storage.ts`: Quản lý Local-First, tự động lưu LocalStorage/IndexedDB debounce 300ms, sao lưu/phục hồi file JSON.
+  - `export-engine.ts`: Xuất Word (.doc) và Excel (.xlsx/.csv) chuẩn Nghị định 30/2020/NĐ-CP của Chính phủ.
+  - `smart-command.ts`: Phân tích câu lệnh tiếng Việt tự nhiên điều khiển ứng dụng không cần qua cloud.
+

@@ -139,3 +139,28 @@
 >    - **MCP Sử Dụng:** `sales-video-mcp` (Tạo kịch bản bán hàng/giới thiệu, thu âm giọng đọc AI tiếng Việt, render video thành phẩm) + Google Workspace (`gdocs`, `gslides`).
 >    - **Đầu ra:** Video demo sản phẩm hoàn chỉnh cùng tài liệu hướng dẫn bàn giao cho người dùng.
 
+---
+
+## 9. HỆ THỐNG MCP TIẾT KIỆM TOKEN TỐI ĐA & BỘ LÕI SIÊU VIP PRO (TOKEN-SAVER & CORE TOOLKIT)
+> [!IMPORTANT]
+> **Khi sửa chữa, tái cấu trúc hoặc tạo mới mã nguồn, trợ lý BẮT BUỘC ưu tiên sử dụng các công cụ tiết kiệm token:**
+> 
+> 1. **MCP Serena (`serena-agent` - Đỉnh cao tiết kiệm 50% - 90% Token):**
+>    - Sử dụng Language Server Protocol (LSP) và cây cú pháp trừu tượng (AST) để thao tác ở cấp độ Symbol (`find_symbol`, `replace_symbol_body`, `insert_before_symbol`, `get_symbols_overview`).
+>    - **Nguyên tắc:** Tuyệt đối không đọc toàn bộ file hoặc ghi đè lại file 500-1000 dòng chỉ để đổi vài dòng code; dùng `replace_symbol_body` của Serena để can thiệp đúng hàm mục tiêu, cắt giảm triệt để token tax.
+> 
+> 2. **MCP Sequential Thinking (`@modelcontextprotocol/server-sequential-thinking`):**
+>    - Lập luận đa bước có cấu trúc trước khi code, triệt tiêu hiện tượng lặp suy luận (prompt loop) và ảo giác (hallucination).
+> 
+> 3. **MCP Context7 (`@upstash/context7-mcp`):**
+>    - Tra cứu tài liệu và code snippet chính thức theo phiên bản (React, Tailwind, Motion, Lucide) theo đúng đoạn cần dùng (`query-docs`), không load tài liệu dư thừa.
+> 
+> 4. **MCP Persistent Memory (`@modelcontextprotocol/server-memory`):**
+>    - Lưu cấu trúc thực thể và quan hệ dự án vào đồ thị tri thức, ngăn AI phải đọc lại toàn bộ cấu trúc thư mục ở mỗi phiên.
+> 
+> 5. **Tận Dụng Bộ Thư Viện Lõi Sẵn Có (`QUY-TRINH-TAO-APP-SIEU-VIP-PRO/core-toolkit/`):**
+>    - `storage.ts`: Cơ chế Local-First tự động lưu LocalStorage/IndexedDB (debounce 300ms), Import/Export JSON sao lưu khôi phục an toàn.
+>    - `export-engine.ts`: Xuất tệp Word (.doc) và Excel (.xlsx/.csv) chuẩn phông Times New Roman và thể thức văn bản hành chính Việt Nam (Nghị định 30/2020/NĐ-CP).
+>    - `smart-command.ts`: Nhận diện và bóc tách câu lệnh điều khiển tiếng Việt tự nhiên 100% offline.
+
+
