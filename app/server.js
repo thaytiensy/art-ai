@@ -79,7 +79,20 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+function setCorsHeaders(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
+}
+
 function handleOfficeStatus(req, res) {
+  setCorsHeaders(res);
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
   try {
     const info = detectInstalledOffice();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -91,6 +104,12 @@ function handleOfficeStatus(req, res) {
 }
 
 function handleOpenOffice(req, res, pathname) {
+  setCorsHeaders(res);
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
   try {
     const chunks = [];
     req.on('data', chunk => chunks.push(chunk));
